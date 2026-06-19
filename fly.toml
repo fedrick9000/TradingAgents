@@ -1,7 +1,7 @@
-# Trading Agent Web UI — Fly.io configuration
-# Change `app` to your Fly.io app name, then run:
-#   fly secrets set ANTHROPIC_API_KEY=sk-...   (or whichever provider you use)
-#   fly deploy
+# fly.toml app configuration file generated for multipletradingagent on 2026-06-19T17:05:28Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = "multipletradingagent"
 primary_region = "nrt"
@@ -13,9 +13,10 @@ primary_region = "nrt"
   internal_port = 8080
   force_https = true
   # Scale to zero when idle — restarts on first request (~3s cold start)
-  auto_stop_machines = "stop"
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
+  concurrency = { hard_limit = 25, soft_limit = 20, type = 'connections' }
 
   [http_service.concurrency]
     type = "connections"
@@ -23,6 +24,14 @@ primary_region = "nrt"
     soft_limit = 20
 
 [[vm]]
-  memory = "1gb"
-  cpu_kind = "shared"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 2
+  memory_mb = 1024
+  processes = ['app']
+  size = 'shared-cpu-2x'
