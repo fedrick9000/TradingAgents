@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradingAgents</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+
+  <!-- ═══════════════════ ACT 1: IDLE ═══════════════════ -->
+  <div id="idle-view">
+    <header class="site-header">
+      <span class="logo">TradingAgents</span>
+      <span class="tagline">Multi-Agent LLM Financial Analysis</span>
+    </header>
+
+    <main class="idle-main">
+      <div class="input-card">
+        <h1 class="input-title">Analyse a Stock</h1>
+
+        <div class="form-row">
+          <label for="ticker-input">Ticker</label>
+          <input id="ticker-input" type="text" placeholder="e.g. NVDA, AAPL, BTC-USD"
+                 autocomplete="off" autocapitalize="characters" />
+        </div>
+
+        <div class="form-row">
+          <label for="date-input">Analysis Date</label>
+          <input id="date-input" type="date" />
+        </div>
+
+        <div class="form-row-2col">
+          <div class="form-row">
+            <label for="provider-select">LLM Provider</label>
+            <select id="provider-select"><option value="">Loading…</option></select>
+          </div>
+          <div class="form-row">
+            <label for="deep-model-select">Deep-Think Model</label>
+            <select id="deep-model-select"></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="quick-model-select">Quick-Think Model</label>
+          <select id="quick-model-select"></select>
+        </div>
+
+        <div class="advanced-wrapper">
+          <button id="advanced-toggle" class="advanced-toggle" type="button">
+            Advanced options ▾
+          </button>
+          <div id="advanced-panel" class="advanced-panel hidden">
+            <div class="form-row">
+              <label>Analysts</label>
+              <div id="analyst-checkboxes" class="checkbox-group">
+                <label><input type="checkbox" value="market"       checked /> Market</label>
+                <label><input type="checkbox" value="social"       checked /> Sentiment</label>
+                <label><input type="checkbox" value="news"         checked /> News</label>
+                <label><input type="checkbox" value="fundamentals" checked /> Fundamentals</label>
+              </div>
+            </div>
+            <div class="form-row-2col">
+              <div class="form-row">
+                <label for="depth-select">Research Depth</label>
+                <select id="depth-select">
+                  <option value="1">1 round</option>
+                  <option value="2">2 rounds</option>
+                  <option value="3" selected>3 rounds</option>
+                  <option value="5">5 rounds</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="language-select">Output Language</label>
+                <select id="language-select">
+                  <option value="English" selected>English</option>
+                  <option value="Chinese">Chinese</option>
+                  <option value="Japanese">Japanese</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p id="analyze-error" class="form-error hidden"></p>
+        <button id="analyze-btn" class="analyze-btn" type="button">Analyze</button>
+      </div>
+
+      <!-- How It Works -->
+      <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="pipeline-diagram">
+          <div class="stage">
+            <div class="stage-icon">📊</div>
+            <div class="stage-name">Analyst Team</div>
+            <div class="stage-desc">Market, Sentiment, News, and Fundamentals analysts independently gather and interpret data.</div>
+          </div>
+          <div class="stage-arrow">→</div>
+          <div class="stage">
+            <div class="stage-icon">⚔️</div>
+            <div class="stage-name">Research Debate</div>
+            <div class="stage-desc">Bull and Bear researchers debate the investment case. A Research Manager synthesises the arguments.</div>
+          </div>
+          <div class="stage-arrow">→</div>
+          <div class="stage">
+            <div class="stage-icon">💼</div>
+            <div class="stage-name">Trader</div>
+            <div class="stage-desc">The Trader converts the research plan into a concrete transaction proposal with entry, exit, and position sizing.</div>
+          </div>
+          <div class="stage-arrow">→</div>
+          <div class="stage">
+            <div class="stage-icon">🛡️</div>
+            <div class="stage-name">Risk Debate</div>
+            <div class="stage-desc">Aggressive, Neutral, and Conservative analysts debate the risk profile of the trade.</div>
+          </div>
+          <div class="stage-arrow">→</div>
+          <div class="stage">
+            <div class="stage-icon">🏛️</div>
+            <div class="stage-name">Portfolio Manager</div>
+            <div class="stage-desc">Weighs all perspectives and delivers the final BUY / HOLD / SELL decision with full reasoning.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ═══════════════════ ACT 2 & 3: RUNNING / COMPLETE ═══════════════════ -->
+  <div id="running-view" class="hidden">
+    <header class="running-header">
+      <span class="logo">TradingAgents</span>
+      <span id="compact-bar" class="compact-bar"></span>
+      <span id="elapsed-display" class="elapsed"></span>
+    </header>
+
+    <div id="pipeline-strip" class="pipeline-strip"></div>
+
+    <div class="stage-layout">
+      <div id="live-feed" class="live-feed">
+        <div class="feed-placeholder">Waiting for analysis to start…</div>
+      </div>
+
+      <div id="story-panels" class="story-panels">
+        <!-- Analyst cards -->
+        <div id="panel-market"       class="story-card pending" data-label="Market Analyst"></div>
+        <div id="panel-sentiment"    class="story-card pending" data-label="Sentiment Analyst"></div>
+        <div id="panel-news"         class="story-card pending" data-label="News Analyst"></div>
+        <div id="panel-fundamentals" class="story-card pending" data-label="Fundamentals Analyst"></div>
+
+        <!-- Investment Debate -->
+        <div id="panel-invest-debate" class="story-card debate-card pending" data-label="Research Debate">
+          <div class="debate-zones">
+            <div class="debate-research-zone">
+              <div class="zone-label">Research Manager — initial synthesis</div>
+              <div id="invest-research-content" class="zone-content muted">Waiting…</div>
+            </div>
+            <div class="debate-arena">
+              <div class="debate-col bull-col">
+                <div class="col-header bull-header">🐂 Bull Researcher</div>
+                <div id="invest-bull-content" class="debate-content"></div>
+              </div>
+              <div class="debate-col bear-col">
+                <div class="col-header bear-header">🐻 Bear Researcher</div>
+                <div id="invest-bear-content" class="debate-content"></div>
+              </div>
+            </div>
+            <div class="debate-judgment-zone">
+              <div class="zone-label">Research Manager — judgment</div>
+              <div id="invest-judge-content" class="zone-content muted">Waiting…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trader plan -->
+        <div id="panel-trader" class="story-card pending" data-label="Trader"></div>
+
+        <!-- Risk Debate -->
+        <div id="panel-risk-debate" class="story-card debate-card pending" data-label="Risk Deliberation">
+          <div class="debate-zones">
+            <div class="debate-research-zone">
+              <div class="zone-label">Trader proposal</div>
+              <div id="risk-trader-recap" class="zone-content muted">Waiting…</div>
+            </div>
+            <div class="debate-arena risk-arena">
+              <div class="debate-col agg-col">
+                <div class="col-header agg-header">⚡ Aggressive</div>
+                <div id="risk-agg-content" class="debate-content"></div>
+              </div>
+              <div class="debate-col neu-col">
+                <div class="col-header neu-header">⚖️ Neutral</div>
+                <div id="risk-neu-content" class="debate-content"></div>
+              </div>
+              <div class="debate-col con-col">
+                <div class="col-header con-header">🛡️ Conservative</div>
+                <div id="risk-con-content" class="debate-content"></div>
+              </div>
+            </div>
+            <div class="debate-judgment-zone">
+              <div class="zone-label">Portfolio Manager — final decision</div>
+              <div id="risk-judge-content" class="zone-content muted">Waiting…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Final Decision -->
+        <div id="panel-final" class="story-card final-card pending" data-label="Final Decision">
+          <div class="final-placeholder">Awaiting Portfolio Manager…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ RECENT ANALYSES ═══════════════════ -->
+  <section id="recent-section" class="recent-section hidden">
+    <h2>Recent Analyses <span class="recent-hint">(this session)</span></h2>
+    <ul id="recent-list" class="recent-list"></ul>
+  </section>
+
+</body>
+</html>
