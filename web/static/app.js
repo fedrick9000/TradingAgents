@@ -209,3 +209,193 @@ function buildPipelineStrip(selectedAnalysts) { /* Task 5 */ }
 function resetStoryPanels(selectedAnalysts) { /* Task 6 */ }
 function clearFeed() { /* Task 5 */ }
 function openSSE(sessionId) { /* Task 5 */ }
+
+// ── Task 5: pipeline strip ─────────────────────────────────────────────────
+const TEAM_AGENTS = {
+  'Analyst Team':       ['Market Analyst', 'Sentiment Analyst', 'News Analyst', 'Fundamentals Analyst'],
+  'Research Team':      ['Bull Researcher', 'Bear Researcher', 'Research Manager'],
+  'Trading Team':       ['Trader'],
+  'Risk Management':    ['Aggressive Analyst', 'Neutral Analyst', 'Conservative Analyst'],
+  'Portfolio Management': ['Portfolio Manager'],
+};
+
+function buildPipelineStrip(selectedAnalysts) {
+  const strip = document.getElementById('pipeline-strip');
+  strip.innerHTML = '';
+
+  const analystMap = {
+    market: 'Market Analyst', social: 'Sentiment Analyst',
+    news: 'News Analyst', fundamentals: 'Fundamentals Analyst',
+  };
+  const selectedAgents = new Set(selectedAnalysts.map(k => analystMap[k]).filter(Boolean));
+
+  Object.entries(TEAM_AGENTS).forEach(([team, agents]) => {
+    // Only include agents that are relevant (selected analysts + fixed teams)
+    const relevant = team === 'Analyst Team'
+      ? agents.filter(a => selectedAgents.has(a))
+      : agents;
+    if (relevant.length === 0) return;
+
+    const block = document.createElement('div');
+    block.className = 'team-block';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'team-name';
+    nameEl.textContent = team;
+    block.appendChild(nameEl);
+
+    const dotsEl = document.createElement('div');
+    dotsEl.className = 'agent-dots';
+    relevant.forEach(agent => {
+      AppState.agentStatus[agent] = 'pending';
+      const dot = document.createElement('div');
+      dot.className = 'agent-dot';
+      dot.dataset.agent = agent;
+      dot.dataset.status = 'pending';
+      dot.title = agent;
+      dotsEl.appendChild(dot);
+    });
+    block.appendChild(dotsEl);
+    strip.appendChild(block);
+  });
+}
+
+function updatePipelineStrip(agent, status) {
+  AppState.agentStatus[agent] = status;
+  const dot = document.querySelector(`.agent-dot[data-agent="${CSS.escape(agent)}"]`);
+  if (dot) dot.dataset.status = status;
+
+  // Also sync story card status dot
+  const card = agentToCard(agent);
+  if (card) {
+    const statusDot = card.querySelector('.card-status-dot');
+    if (statusDot) {
+      statusDot.className = `card-status-dot ${status}`;
+    }
+    card.classList.remove('pending', 'active', 'done');
+    if (status === 'in_progress') card.classList.add('active');
+    if (status === 'completed')   card.classList.add('done');
+  }
+}
+
+// Stub for Task 6 — returns the story card DOM element for a given agent name
+function agentToCard(agent) { /* Task 6 */ return null; }
+
+// ── Task 5: live feed ──────────────────────────────────────────────────────
+function clearFeed() {
+  const feed = document.getElementById('live-feed');
+  feed.innerHTML = '';
+}
+
+function appendFeedRow(event) {
+  const feed = document.getElementById('live-feed');
+  const placeholder = feed.querySelector('.feed-placeholder');
+  if (placeholder) placeholder.remove();
+
+  const row = document.createElement('div');
+  row.className = 'feed-row';
+
+  const ts = document.createElement('span');
+  ts.className = 'feed-ts';
+  ts.textContent = event.ts || '';
+
+  const badge = document.createElement('span');
+  badge.className = `feed-kind kind-${event.kind}`;
+  badge.textContent = event.kind === 'tool_group' ? 'tools' : event.kind;
+
+  const content = document.createElement('div');
+  content.className = 'feed-content';
+
+  if (event.kind === 'tool_group') {
+    content.textContent = event.content;
+    // Expandable tool args
+    badge.addEventListener('click', () => {
+      content.classList.toggle('expanded');
+      const existing = row.querySelector('.tool-args');
+      if (existing) { existing.remove(); return; }
+      const args = document.createElement('div');
+      args.className = 'tool-args';
+      args.textContent = (event.tools || []).join('\n');
+      content.after(args);
+    });
+  } else {
+    content.textContent = event.content || '';
+  }
+
+  row.appendChild(ts);
+  row.appendChild(badge);
+  row.appendChild(content);
+  feed.appendChild(row);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+// ── Task 5: SSE client ─────────────────────────────────────────────────────
+function openSSE(sessionId) {
+  if (AppState.eventSource) AppState.eventSource.close();
+  const es = new EventSource(`/api/stream/${sessionId}`);
+  AppState.eventSource = es;
+
+  es.onmessage = e => {
+    try {
+      const event = JSON.parse(e.data);
+      handleEvent(event);
+    } catch (err) {
+      console.error('SSE parse error', err);
+    }
+  };
+
+  es.onerror = () => {
+    if (AppState.phase === 'running') {
+      appendSystemFeed('⚠ Connection lost — results may be incomplete.');
+    }
+    es.close();
+  };
+}
+
+function appendSystemFeed(text) {
+  appendFeedRow({ ts: nowTs(), kind: 'system', content: text });
+}
+
+function nowTs() {
+  return new Date().toTimeString().slice(0, 8);
+}
+
+// ── Task 5: central event dispatcher ──────────────────────────────────────
+function handleEvent(event) {
+  switch (event.type) {
+    case 'agent_status': onAgentStatus(event); break;
+    case 'feed':         onFeed(event);        break;
+    case 'report':       onReport(event);      break;
+    case 'debate_update':onDebateUpdate(event);break;
+    case 'decision':     onDecision(event);    break;
+    case 'done':         onDone(event);        break;
+    case 'error':        onError(event);       break;
+    default: break;
+  }
+}
+
+function onAgentStatus(event) {
+  updatePipelineStrip(event.agent, event.status);
+  appendSystemFeed(`${event.agent} → ${event.status}`);
+}
+
+function onFeed(event) {
+  appendFeedRow(event);
+}
+
+function onDone(event) {
+  appendSystemFeed(`Analysis complete — ${event.elapsed_seconds}s`);
+  transitionToComplete();
+  loadRecentAnalyses();  // refresh the recent list
+}
+
+function onError(event) {
+  appendSystemFeed(`Error: ${event.message}`);
+  stopElapsed();
+  setAnalyzing(false);
+}
+
+// Stubs for Tasks 6 and 7 — overridden by later appends
+function onReport(event) { /* Task 6 */ }
+function onDebateUpdate(event) { /* Task 7 */ }
+function onDecision(event) { /* Task 7 */ }
