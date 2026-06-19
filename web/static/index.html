@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TradingAgents</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/style.css?v=3" />
+  <link rel="stylesheet" href="/static/style.css?v=4" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
-  <script src="/static/app.js?v=3" defer></script>
+  <script src="/static/app.js?v=4" defer></script>
 </head>
 <body>
 
@@ -17,9 +14,10 @@
   <div id="idle-view" class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <span class="sidebar-logo-icon">📈</span>
+        <div class="sidebar-logo-mark">📈</div>
         <span class="sidebar-logo-text">TradingAgents</span>
       </div>
+
       <nav class="sidebar-nav">
         <div class="nav-item active">
           <span class="nav-icon">⚡</span>
@@ -27,82 +25,65 @@
         </div>
         <div class="nav-item" onclick="scrollToRecent()">
           <span class="nav-icon">📋</span>
-          <span class="nav-label">Recent</span>
+          <span class="nav-label">History</span>
         </div>
       </nav>
-      <div class="sidebar-footer">
-        <div class="sidebar-tagline">Multi-Agent LLM<br>Financial Analysis</div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-info-card">
+          <div class="sidebar-info-icon">🏛️</div>
+          <div class="sidebar-info-text">
+            <div class="sidebar-info-title">Multi-Agent LLM</div>
+            <div class="sidebar-info-sub">Financial Analysis</div>
+          </div>
+        </div>
       </div>
     </aside>
 
     <div class="main-content">
+      <!-- Page header — Droitdash-style -->
+      <header class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">AI Stock Analysis</h1>
+          <p class="page-subtitle">Five specialist agents research, debate, and deliver a verdict — live.</p>
+        </div>
+      </header>
+
       <main class="idle-main">
 
-        <!-- Hero section -->
-        <div class="hero-section">
-          <div class="hero-badge">AI-Powered · Multi-Agent · Real-Time</div>
-          <h1 class="hero-title">Institutional-grade stock<br>analysis in minutes</h1>
-          <p class="hero-sub">Five specialist AI agents debate every angle of a trade — from market data and sentiment to risk and portfolio fit — and deliver a clear BUY, HOLD, or SELL verdict with full reasoning.</p>
-
-          <div class="hero-stats">
-            <div class="hero-stat">
-              <span class="hero-stat-num">5</span>
-              <span class="hero-stat-lbl">AI Agents</span>
+        <!-- KPI stat cards (Droitdash-style tinted row) -->
+        <div class="kpi-row">
+          <div class="kpi-card kpi-blue">
+            <div class="kpi-top">
+              <span class="kpi-label">AI Agents</span>
+              <span class="kpi-icon">🤖</span>
             </div>
-            <div class="hero-stat-divider"></div>
-            <div class="hero-stat">
-              <span class="hero-stat-num">4</span>
-              <span class="hero-stat-lbl">Data Sources</span>
-            </div>
-            <div class="hero-stat-divider"></div>
-            <div class="hero-stat">
-              <span class="hero-stat-num">1</span>
-              <span class="hero-stat-lbl">Clear Decision</span>
-            </div>
+            <div class="kpi-num">5</div>
+            <div class="kpi-detail">Market · Sentiment · News · Fundamentals · Portfolio</div>
           </div>
-        </div>
-
-        <!-- What you get cards -->
-        <div class="output-preview">
-          <h2 class="section-title">What you'll receive</h2>
-          <div class="output-cards">
-            <div class="output-card">
-              <div class="output-card-icon">📊</div>
-              <div class="output-card-title">Market Analysis</div>
-              <div class="output-card-desc">Price trends, technical indicators (RSI, MACD, Bollinger Bands), moving averages, and volume signals.</div>
+          <div class="kpi-card kpi-purple">
+            <div class="kpi-top">
+              <span class="kpi-label">Data Sources</span>
+              <span class="kpi-icon">📡</span>
             </div>
-            <div class="output-card">
-              <div class="output-card-icon">🗞️</div>
-              <div class="output-card-title">Sentiment &amp; News</div>
-              <div class="output-card-desc">Social sentiment score, news headlines impact, macro factors from the Federal Reserve, and market mood.</div>
+            <div class="kpi-num">4</div>
+            <div class="kpi-detail">Yahoo Finance · Alpha Vantage · FRED · News APIs</div>
+          </div>
+          <div class="kpi-card kpi-green">
+            <div class="kpi-top">
+              <span class="kpi-label">Clear Verdict</span>
+              <span class="kpi-icon">🏁</span>
             </div>
-            <div class="output-card">
-              <div class="output-card-icon">⚔️</div>
-              <div class="output-card-title">Bull vs Bear Debate</div>
-              <div class="output-card-desc">Two researchers argue opposite sides of the trade, synthesised by a Research Manager into an investment plan.</div>
-            </div>
-            <div class="output-card">
-              <div class="output-card-icon">🛡️</div>
-              <div class="output-card-title">Risk Assessment</div>
-              <div class="output-card-desc">Aggressive, Neutral, and Conservative risk perspectives debated and resolved by a Portfolio Manager.</div>
-            </div>
-            <div class="output-card accent-card">
-              <div class="output-card-icon">🏛️</div>
-              <div class="output-card-title">Final Verdict</div>
-              <div class="output-card-desc">A clear <strong>BUY / HOLD / SELL</strong> signal with position sizing guidance, entry/exit points, and full reasoning.</div>
-            </div>
-            <div class="output-card">
-              <div class="output-card-icon">⏱️</div>
-              <div class="output-card-title">Live Progress</div>
-              <div class="output-card-desc">Watch every agent work in real-time — see the data fetched, models called, and decisions made as they happen.</div>
-            </div>
+            <div class="kpi-num">1</div>
+            <div class="kpi-detail">BUY / HOLD / SELL with position sizing & full reasoning</div>
           </div>
         </div>
 
         <!-- Analysis form -->
-        <div class="input-card" id="analyze-form">
-          <div class="input-card-header">
-            <h2 class="input-title">Start an Analysis</h2>
+        <div class="card" id="analyze-form">
+          <div class="card-head">
+            <span class="card-title">Start an Analysis</span>
+            <span class="card-subtitle">Enter a ticker and date to begin</span>
           </div>
 
           <div class="form-row-2col">
@@ -119,7 +100,7 @@
 
           <div class="advanced-wrapper">
             <button id="advanced-toggle" class="advanced-toggle" type="button">
-              Advanced options ▾
+              ⚙ Advanced options ▾
             </button>
             <div id="advanced-panel" class="advanced-panel hidden">
               <div class="form-row-2col">
@@ -171,12 +152,55 @@
           <button id="analyze-btn" class="analyze-btn" type="button">
             <span class="btn-icon">⚡</span> Start Analysis
           </button>
-          <p class="single-run-note">One analysis at a time · Results appear live as agents work</p>
+          <p class="single-run-note">One analysis at a time · Results stream live as agents work</p>
         </div>
 
-        <!-- How It Works -->
-        <section class="how-it-works">
-          <h2 class="section-title">Pipeline Overview</h2>
+        <!-- What you'll receive -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">What you'll receive</span>
+            <span class="card-subtitle">Every analysis produces these outputs</span>
+          </div>
+          <div class="output-cards">
+            <div class="output-card">
+              <div class="output-card-icon">📊</div>
+              <div class="output-card-title">Market Analysis</div>
+              <div class="output-card-desc">Price trends, RSI, MACD, Bollinger Bands, moving averages, and volume signals.</div>
+            </div>
+            <div class="output-card">
+              <div class="output-card-icon">🗞️</div>
+              <div class="output-card-title">Sentiment &amp; News</div>
+              <div class="output-card-desc">Social sentiment, news impact, macro factors from the Federal Reserve.</div>
+            </div>
+            <div class="output-card">
+              <div class="output-card-icon">⚔️</div>
+              <div class="output-card-title">Bull vs Bear Debate</div>
+              <div class="output-card-desc">Two researchers argue opposite sides, synthesised by a Research Manager.</div>
+            </div>
+            <div class="output-card">
+              <div class="output-card-icon">🛡️</div>
+              <div class="output-card-title">Risk Assessment</div>
+              <div class="output-card-desc">Aggressive, Neutral, and Conservative perspectives resolved by a Portfolio Manager.</div>
+            </div>
+            <div class="output-card output-card-accent">
+              <div class="output-card-icon">🏛️</div>
+              <div class="output-card-title">Final Verdict</div>
+              <div class="output-card-desc"><strong>BUY / HOLD / SELL</strong> with entry/exit points, position sizing, and full reasoning.</div>
+            </div>
+            <div class="output-card">
+              <div class="output-card-icon">⏱️</div>
+              <div class="output-card-title">Live Progress</div>
+              <div class="output-card-desc">Watch every agent work in real-time — data fetched, models called, decisions made.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline overview -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">How it works</span>
+            <span class="card-subtitle">Five stages from data to decision</span>
+          </div>
           <div class="pipeline-diagram">
             <div class="stage">
               <div class="stage-icon">📊</div>
@@ -187,7 +211,7 @@
             <div class="stage">
               <div class="stage-icon">⚔️</div>
               <div class="stage-name">Research Debate</div>
-              <div class="stage-desc">Bull and Bear researchers debate the investment case with a Research Manager synthesis.</div>
+              <div class="stage-desc">Bull and Bear researchers debate the investment case; Research Manager synthesises.</div>
             </div>
             <div class="stage-arrow">→</div>
             <div class="stage">
@@ -199,7 +223,7 @@
             <div class="stage">
               <div class="stage-icon">🛡️</div>
               <div class="stage-name">Risk Debate</div>
-              <div class="stage-desc">Three risk perspectives debated — Aggressive, Neutral, and Conservative.</div>
+              <div class="stage-desc">Aggressive, Neutral, and Conservative risk perspectives debated.</div>
             </div>
             <div class="stage-arrow">→</div>
             <div class="stage">
@@ -208,13 +232,17 @@
               <div class="stage-desc">Final BUY / HOLD / SELL decision with full reasoning and position guidance.</div>
             </div>
           </div>
-        </section>
+        </div>
+
       </main>
 
       <!-- Recent Analyses -->
-      <section id="recent-section" class="recent-section hidden">
-        <div class="idle-main">
-          <h2 class="section-title">Recent Analyses <span class="recent-hint">(this session)</span></h2>
+      <section id="recent-section" class="idle-main hidden" style="padding-top:0;padding-bottom:60px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Recent Analyses</span>
+            <span class="card-subtitle">This session</span>
+          </div>
           <ul id="recent-list" class="recent-list"></ul>
         </div>
       </section>
@@ -225,13 +253,13 @@
   <div id="running-view" class="app-shell hidden">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <span class="sidebar-logo-icon">📈</span>
+        <div class="sidebar-logo-mark">📈</div>
         <span class="sidebar-logo-text">TradingAgents</span>
       </div>
 
       <div id="pipeline-strip" class="pipeline-strip"></div>
 
-      <div class="sidebar-actions">
+      <div class="sidebar-bottom">
         <button id="home-btn" class="home-btn" type="button">
           ← Back to Home
         </button>
@@ -261,13 +289,11 @@
         </div>
 
         <div id="story-panels" class="story-panels">
-          <!-- Analyst cards -->
           <div id="panel-market"       class="story-card pending" data-label="Market Analyst"></div>
           <div id="panel-sentiment"    class="story-card pending" data-label="Sentiment Analyst"></div>
           <div id="panel-news"         class="story-card pending" data-label="News Analyst"></div>
           <div id="panel-fundamentals" class="story-card pending" data-label="Fundamentals Analyst"></div>
 
-          <!-- Investment Debate -->
           <div id="panel-invest-debate" class="story-card debate-card pending" data-label="Research Debate">
             <div class="debate-zones">
               <div class="debate-research-zone">
@@ -291,10 +317,8 @@
             </div>
           </div>
 
-          <!-- Trader plan -->
           <div id="panel-trader" class="story-card pending" data-label="Trader"></div>
 
-          <!-- Risk Debate -->
           <div id="panel-risk-debate" class="story-card debate-card pending" data-label="Risk Deliberation">
             <div class="debate-zones">
               <div class="debate-research-zone">
@@ -322,7 +346,6 @@
             </div>
           </div>
 
-          <!-- Final Decision -->
           <div id="panel-final" class="story-card final-card pending" data-label="Final Decision">
             <div class="final-placeholder">Awaiting Portfolio Manager…</div>
           </div>
