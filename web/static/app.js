@@ -204,8 +204,46 @@ function stopElapsed() {
 // ── recent analyses (stub — populated by Task 7) ──────────────────────────
 function loadRecentAnalyses() { /* Task 7 */ }
 
-// Stub — implemented by Task 6
-function resetStoryPanels(selectedAnalysts) { /* Task 6 */ }
+// ── story panel management ────────────────────────────────────────────────
+function resetStoryPanels(selectedAnalysts) {
+  // Build analyst cards with correct labels and collapse them
+  const analystCards = [
+    { id: 'panel-market',       key: 'market',       label: 'Market Analyst' },
+    { id: 'panel-sentiment',    key: 'social',        label: 'Sentiment Analyst' },
+    { id: 'panel-news',         key: 'news',          label: 'News Analyst' },
+    { id: 'panel-fundamentals', key: 'fundamentals',  label: 'Fundamentals Analyst' },
+  ];
+
+  analystCards.forEach(({ id, key, label }) => {
+    const card = document.getElementById(id);
+    const included = selectedAnalysts.includes(key);
+    card.classList.toggle('hidden', !included);
+    if (included) initCard(card, label);
+  });
+
+  // Fixed panels
+  initCard(document.getElementById('panel-invest-debate'), 'Research Debate');
+  initCard(document.getElementById('panel-trader'), 'Trader');
+  initCard(document.getElementById('panel-risk-debate'), 'Risk Deliberation');
+  initCard(document.getElementById('panel-final'), 'Final Decision');
+
+  // Reset debate content
+  ['invest-bull-content', 'invest-bear-content', 'invest-research-content',
+   'invest-judge-content', 'risk-agg-content', 'risk-con-content',
+   'risk-neu-content', 'risk-judge-content', 'risk-trader-recap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  ['invest-research-content', 'invest-judge-content',
+   'risk-judge-content', 'risk-trader-recap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = 'Waiting…'; el.classList.add('muted'); }
+  });
+
+  // Reset final card
+  document.getElementById('panel-final').innerHTML =
+    `<div class="final-placeholder">Awaiting Portfolio Manager…</div>`;
+}
 
 // ── Task 5: pipeline strip ─────────────────────────────────────────────────
 const TEAM_AGENTS = {
@@ -275,8 +313,11 @@ function updatePipelineStrip(agent, status) {
   }
 }
 
-// Stub for Task 6 — returns the story card DOM element for a given agent name
-function agentToCard(agent) { /* Task 6 */ return null; }
+// Returns the story card DOM element for a given agent name
+function agentToCard(agent) {
+  const id = AGENT_TO_CARD_ID[agent];
+  return id ? document.getElementById(id) : null;
+}
 
 // ── Task 5: live feed ──────────────────────────────────────────────────────
 function clearFeed() {
@@ -394,7 +435,90 @@ function onError(event) {
   setAnalyzing(false);
 }
 
-// Stubs for Tasks 6 and 7 — overridden by later appends
-function onReport(event) { /* Task 6 */ }
+// ── report event handler ──────────────────────────────────────────────────
+function onReport(event) {
+  AppState.reports[event.section] = event.content;
+
+  const cardId = SECTION_TO_CARD[event.section];
+  if (cardId) {
+    const card = document.getElementById(cardId);
+    if (card) setCardContent(card, event.content);
+    return;
+  }
+
+  // investment_plan goes into the Research Debate panel's research zone
+  if (event.section === 'investment_plan') {
+    const el = document.getElementById('invest-research-content');
+    if (el) {
+      el.classList.remove('muted');
+      el.innerHTML = typeof marked !== 'undefined'
+        ? marked.parse(event.content)
+        : event.content;
+      // Open invest debate panel
+      const panel = document.getElementById('panel-invest-debate');
+      if (panel) openCard(panel);
+    }
+
+    // Also recap in risk panel
+    const recap = document.getElementById('risk-trader-recap');
+    if (recap) {
+      recap.textContent = event.content.slice(0, 200) + (event.content.length > 200 ? '…' : '');
+      recap.classList.remove('muted');
+    }
+  }
+}
+
+// Stubs for Task 7 — overridden by later appends
 function onDebateUpdate(event) { /* Task 7 */ }
 function onDecision(event) { /* Task 7 */ }
+
+// ── Task 6: story panel constants and helpers ─────────────────────────────
+const SECTION_TO_CARD = {
+  market_report:          'panel-market',
+  sentiment_report:       'panel-sentiment',
+  news_report:            'panel-news',
+  fundamentals_report:    'panel-fundamentals',
+  trader_investment_plan: 'panel-trader',
+  // investment_plan and debate sections handled separately in onReport
+};
+
+const AGENT_TO_CARD_ID = {
+  'Market Analyst':       'panel-market',
+  'Sentiment Analyst':    'panel-sentiment',
+  'News Analyst':         'panel-news',
+  'Fundamentals Analyst': 'panel-fundamentals',
+  'Trader':               'panel-trader',
+};
+
+function initCard(card, label) {
+  card.className = 'story-card pending';
+  card.innerHTML = `
+    <div class="card-header" onclick="toggleCard(this.closest('.story-card'))">
+      <div class="card-header-left">
+        <div class="card-status-dot"></div>
+        <span class="card-label">${label}</span>
+      </div>
+      <span class="card-chevron">▾</span>
+    </div>
+    <div class="card-body">
+      <div class="card-markdown"></div>
+    </div>`;
+}
+
+function toggleCard(card) {
+  card.classList.toggle('open');
+}
+
+function openCard(card) {
+  card.classList.add('open');
+}
+
+function setCardContent(card, markdownText) {
+  const body = card.querySelector('.card-markdown');
+  if (body) {
+    body.innerHTML = typeof marked !== 'undefined'
+      ? marked.parse(markdownText)
+      : markdownText.replace(/\n/g, '<br>');
+  }
+  openCard(card);
+}
