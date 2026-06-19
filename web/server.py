@@ -78,35 +78,40 @@ def index():
 
 # ── provider catalogue ────────────────────────────────────────────────────
 PROVIDERS: dict[str, dict] = {
-    "anthropic": {
-        "label": "Anthropic",
-        "deep_models":  ["claude-opus-4-8", "claude-sonnet-4-6"],
-        "quick_models": ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
-        "key_env": "ANTHROPIC_API_KEY",
-    },
-    "openai": {
-        "label": "OpenAI",
-        "deep_models":  ["o3", "o4-mini", "gpt-4o"],
-        "quick_models": ["gpt-4o-mini", "gpt-4o"],
-        "key_env": "OPENAI_API_KEY",
-    },
-    "google": {
-        "label": "Google Gemini",
-        "deep_models":  ["gemini-2.5-pro", "gemini-2.0-flash"],
-        "quick_models": ["gemini-2.0-flash", "gemini-1.5-flash"],
-        "key_env": "GOOGLE_API_KEY",
-    },
     "deepseek": {
         "label": "DeepSeek",
         "deep_models":  ["deepseek-reasoner"],
         "quick_models": ["deepseek-chat"],
         "key_env": "DEEPSEEK_API_KEY",
+        "available": True,
+    },
+    "anthropic": {
+        "label": "Anthropic (coming soon)",
+        "deep_models":  ["claude-opus-4-8", "claude-sonnet-4-6"],
+        "quick_models": ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
+        "key_env": "ANTHROPIC_API_KEY",
+        "available": False,
+    },
+    "openai": {
+        "label": "OpenAI (coming soon)",
+        "deep_models":  ["o3", "o4-mini", "gpt-4o"],
+        "quick_models": ["gpt-4o-mini", "gpt-4o"],
+        "key_env": "OPENAI_API_KEY",
+        "available": False,
+    },
+    "google": {
+        "label": "Google Gemini (coming soon)",
+        "deep_models":  ["gemini-2.5-pro", "gemini-2.0-flash"],
+        "quick_models": ["gemini-2.0-flash", "gemini-1.5-flash"],
+        "key_env": "GOOGLE_API_KEY",
+        "available": False,
     },
     "ollama": {
-        "label": "Ollama (local)",
+        "label": "Ollama (coming soon)",
         "deep_models":  ["llama3.3:70b", "qwen2.5:72b"],
         "quick_models": ["llama3.2:3b", "qwen2.5:7b"],
         "key_env": None,
+        "available": False,
     },
 }
 

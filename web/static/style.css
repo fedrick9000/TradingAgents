@@ -131,6 +131,34 @@ body {
 .sidebar-info-title { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.85); }
 .sidebar-info-sub   { font-size: 0.7rem; color: var(--sidebar-muted); margin-top: 1px; }
 
+/* clickable brand (running view) */
+.sidebar-brand-link {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sidebar-brand-link:hover { background: rgba(255,255,255,0.07); }
+
+/* home button at top of running sidebar */
+.sidebar-top-actions {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--sidebar-bdr);
+  flex-shrink: 0;
+}
+.sidebar-top-actions .home-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+.sidebar-top-actions .home-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+
 /* running sidebar extras */
 .sidebar .pipeline-strip {
   flex: 1;

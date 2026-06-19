@@ -102,8 +102,12 @@ function populateProviderSelect(providers) {
     const opt = document.createElement('option');
     opt.value = id;
     opt.textContent = p.label;
+    if (p.available === false) opt.disabled = true;
     sel.appendChild(opt);
   });
+  // Default to first available provider
+  const firstAvailable = Object.entries(providers).find(([, p]) => p.available !== false);
+  if (firstAvailable) sel.value = firstAvailable[0];
   sel.addEventListener('change', () => updateModelSelects(sel.value));
   updateModelSelects(sel.value);
 }
@@ -262,6 +266,8 @@ function transitionToIdle() {
 function wireHomeBtn() {
   const btn = document.getElementById('home-btn');
   if (btn) btn.addEventListener('click', transitionToIdle);
+  const brand = document.getElementById('running-brand');
+  if (brand) brand.addEventListener('click', transitionToIdle);
 }
 
 function scrollToRecent() {
