@@ -151,6 +151,15 @@ These transitions are approximations derived from report appearance in the strea
 **Act 1 — Input (idle state)**  
 Full-page centered card. Four visible controls only: ticker (large text input), date (defaults to today), provider selector, model selector. "Analyze" button below. A chevron reveals the Advanced panel: analyst selection, research depth (debate rounds), output language. No other controls.
 
+Below the input card, a static "How It Works" section explains the multi-agent workflow at a glance. It shows the five-stage pipeline as a horizontal flow diagram (text-based, no images):
+
+```
+Analyst Team → Research Debate → Trader → Risk Debate → Portfolio Manager
+   (data)        (bull vs bear)   (plan)   (risk views)   (final decision)
+```
+
+Each stage has a two-sentence description of what it does and why. This stays visible on the idle page so first-time users understand the system before they run it. It is hidden during the running and complete states to make room for the live workflow.
+
 **Act 2 — Running state**  
 Input collapses to a compact top bar (ticker · date · provider). Page body becomes the workflow stage:
 
@@ -196,18 +205,19 @@ Panels stack in pipeline order. Each starts collapsed with a "Waiting…" placeh
 
 **Analyst reports** — one panel each: Market · Sentiment · News · Fundamentals
 
-**Investment Debate panel** — unique, debate-specific layout:
-- Two sub-columns: Bull (green tint) | Bear (red tint)
-- Each debate round adds a message bubble to the appropriate column
-- Research Manager judgment appears below both columns as a synthesis card
-- Round counter shown: "Round 2 of 3"
+**Investment Debate panel** — the storytelling flow is: Research → Debate → Judgment, rendered as three visual zones stacked vertically:
 
-**Trader plan** — single panel, standard report card
+1. **Research zone** — a single card showing the Research Manager's initial synthesis of analyst reports (populated from `investment_plan` field, which the Research Manager writes before the debate begins). Label: "Research Manager synthesises analyst findings."
+2. **Debate zone** — two columns side by side: Bull (green left border) | Bear (red left border). Each debate round appends a message bubble to the appropriate column. A round counter ("Round 1 of 3") sits between them. Bubbles are collapsed to two lines by default; clicking expands.
+3. **Judgment zone** — the Research Manager's final decision after all debate rounds, rendered as a distinct synthesis card below both columns. Label: "Research Manager judgment."
 
-**Risk Deliberation panel** — same debate layout as investment:
-- Three sub-columns: Aggressive | Neutral | Conservative
-- Each risk debate round adds a bubble
-- Portfolio Manager judgment appears below all three as the synthesis card
+**Trader plan** — single panel, standard report card. Label: "Trader converts the research plan into a transaction proposal."
+
+**Risk Deliberation panel** — same three-zone structure as the Investment Debate:
+
+1. **Trader proposal zone** — recap of the trader's plan (one-line summary, links to the full Trader panel above).
+2. **Debate zone** — three columns: Aggressive | Neutral | Conservative. Same bubble pattern, same round counter.
+3. **Judgment zone** — Portfolio Manager's final synthesis card. Label: "Portfolio Manager weighs risk perspectives and delivers the decision."
 
 **Final Decision panel** — starts as a placeholder. On `decision` event: expands full-width, signal badge rendered large, full Portfolio Manager text below.
 
@@ -266,6 +276,7 @@ These are nested dicts. Their top-level keys are unlikely to change, but sub-key
 |---|---|---|
 | `investment_debate_state` | `bull_history`, `bear_history`, `judge_decision` | Sub-keys renamed if debate format changes |
 | `risk_debate_state` | `aggressive_history`, `conservative_history`, `neutral_history`, `judge_decision` | Same risk |
+| `investment_plan` | (full string) | Renamed or merged into `investment_debate_state` |
 
 ### Fragile — avoid depending on
 
@@ -274,6 +285,27 @@ These are nested dicts. Their top-level keys are unlikely to change, but sub-key
 | Agent node name strings (e.g. `"Bull Researcher"`) | Used in graph edges; could be renamed |
 | `messages[-1]` type ordering | CLI uses this; web layer should not assume message ordering within a chunk |
 | Chunk-to-agent mapping (which node produced which chunk) | LangGraph streams per-node deltas; node names are not exposed in the chunk dict itself |
+
+### UI components mapped to field stability
+
+| UI Component | Fields it depends on | Stability | Breaks if… |
+|---|---|---|---|
+| Pipeline strip (agent dots) | `market_report`, `sentiment_report`, `news_report`, `fundamentals_report`, `trader_investment_plan`, `final_trade_decision` | **Stable** | A report field is renamed |
+| Analyst report cards | Same six report fields above | **Stable** | A report field is renamed |
+| Final Decision panel | `final_trade_decision` | **Stable** | Field renamed |
+| Investment Debate — Research zone | `investment_plan` | **Semi-stable** | Field renamed or removed |
+| Investment Debate — Bull/Bear bubbles | `investment_debate_state.bull_history`, `.bear_history` | **Semi-stable** | Sub-key renamed |
+| Investment Debate — Judgment card | `investment_debate_state.judge_decision` | **Semi-stable** | Sub-key renamed |
+| Risk Debate — debate bubbles | `risk_debate_state.aggressive_history`, `.conservative_history`, `.neutral_history` | **Semi-stable** | Sub-key renamed |
+| Risk Debate — Portfolio judgment | `risk_debate_state.judge_decision` | **Semi-stable** | Sub-key renamed |
+| Live feed (agent messages) | `messages` list, message types | **Stable** (LangGraph contract) | LangGraph message API changes |
+| Live feed (tool groups) | `messages` tool_calls attribute | **Stable** (LangChain contract) | LangChain AIMessage API changes |
+
+**Failure modes by dependency tier:**
+
+- If only **stable** fields break → the entire UI is affected (all reports, pipeline strip, final decision). This indicates a major TradingAgents API version change.
+- If only **semi-stable** fields break → the debate panels degrade gracefully to empty placeholders. Analyst reports, the live feed, and the final decision continue working normally.
+- `web/analysis.py` should handle missing semi-stable keys without raising exceptions — treat absent sub-keys as empty strings and emit no `debate_round` events rather than crashing.
 
 **Mitigation:** `web/analysis.py` derives agent status from *report content appearing* (stable keys), not from node names in the stream. If a semi-stable sub-key is renamed, only the debate visualization breaks — analyst reports and the final decision continue working.
 
