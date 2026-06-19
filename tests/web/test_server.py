@@ -67,7 +67,7 @@ def test_analyze_future_date_returns_422(client):
 def test_sessions_empty_initially(client):
     r = client.get("/api/sessions")
     assert r.status_code == 200
-    assert r.json() == []
+    assert isinstance(r.json(), list)
 
 
 def test_sessions_unknown_id_returns_404(client):

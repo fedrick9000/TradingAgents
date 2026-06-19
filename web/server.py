@@ -5,7 +5,6 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
@@ -142,7 +141,7 @@ async def stream_session(session_id: str):
 
     async def event_gen():
         import json as _json
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         while True:
             try:
                 raw = await loop.run_in_executor(None, _dequeue, q)
