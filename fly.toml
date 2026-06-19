@@ -4,7 +4,7 @@
 #   fly deploy
 
 app = "multipletradingagent"
-primary_region = "sin"
+primary_region = "nrt"
 
 [build]
   dockerfile = "Dockerfile.fly"
