@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import os
 import queue
+import re
 import secrets
 import threading
 import time
@@ -140,10 +141,17 @@ class AnalyzeRequest(BaseModel):
 
     @field_validator("ticker")
     @classmethod
-    def ticker_not_empty(cls, v: str) -> str:
+    def ticker_valid(cls, v: str) -> str:
         v = v.strip().upper()
         if not v:
-            raise ValueError("ticker must not be empty")
+            raise ValueError("Ticker must not be empty.")
+        # Allow letters, digits, dot, hyphen, caret, slash — no spaces or colons
+        # Examples: AAPL, 0700.HK, BTC-USD, ^GSPC, BRK.B
+        if not re.match(r"^[A-Z0-9.\-^/]+$", v):
+            raise ValueError(
+                f"'{v}' is not a valid ticker format. "
+                "Use standard formats — e.g. AAPL, 0700.HK (HK stocks), BTC-USD, ^GSPC"
+            )
         return v
 
     @field_validator("date")
