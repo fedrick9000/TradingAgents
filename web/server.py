@@ -22,11 +22,13 @@ _ACCESS_PASSWORD = os.getenv("ACCESS_PASSWORD", "")
 _auth_tokens: set[str] = set()
 
 
+_PROTECTED = ("/api/analyze", "/api/stream/", "/api/sessions", "/api/logout")
+
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    # Protect all /api/ routes except /api/auth itself
-    if _ACCESS_PASSWORD and path.startswith("/api/") and path != "/api/auth":
+    if _ACCESS_PASSWORD and any(path.startswith(p) for p in _PROTECTED):
         token = request.cookies.get("ta_auth")
         if not token or token not in _auth_tokens:
             return JSONResponse({"detail": "Unauthorized"}, status_code=401)

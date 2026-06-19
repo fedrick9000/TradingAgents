@@ -15,40 +15,25 @@ const AppState = {
   currentMeta: {},        // ticker, date, provider for compact bar
   elapsedInterval: null,
   startTime: null,
+  _pendingSubmit: false,  // retry flag: set when 401 triggers auth overlay
 };
 
 // ── bootstrap ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  wireAuthForm();
-  checkAuth();
-});
-
-// ── auth ───────────────────────────────────────────────────────────────────
-async function checkAuth() {
-  try {
-    const r = await fetch('/api/providers');
-    if (r.status === 401) { showAuthOverlay(); return; }
-    if (!r.ok) throw new Error('server error');
-    const { providers } = await r.json();
-    AppState.providers = providers;
-    initApp(providers);
-  } catch {
-    showAuthOverlay();
-  }
-}
-
-function initApp(providers) {
-  hideAuthOverlay();
-  populateProviderSelect(providers);
   setDefaultDate();
+  loadProviders();
   wireForm();
   wireAdvancedToggle();
   wireHomeBtn();
+  wireAuthForm();
   loadRecentAnalyses();
-}
+});
 
+// ── auth overlay ───────────────────────────────────────────────────────────
 function showAuthOverlay() {
-  document.getElementById('auth-overlay').classList.remove('hidden');
+  const overlay = document.getElementById('auth-overlay');
+  overlay.classList.remove('hidden');
+  setTimeout(() => document.getElementById('auth-password').focus(), 50);
 }
 
 function hideAuthOverlay() {
@@ -72,13 +57,18 @@ function wireAuthForm() {
       });
       if (!r.ok) throw new Error('wrong');
       input.value = '';
-      await checkAuth();
+      hideAuthOverlay();
+      // Retry the analysis that triggered the auth prompt
+      if (AppState._pendingSubmit) {
+        AppState._pendingSubmit = false;
+        submitForm();
+      }
     } catch {
       err.classList.remove('hidden');
-      input.focus();
+      input.select();
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Access Dashboard';
+      btn.textContent = 'Unlock & Start Analysis';
     }
   }
 
@@ -185,6 +175,12 @@ async function submitForm() {
         output_language: language,
       }),
     });
+    if (r.status === 401) {
+      setAnalyzing(false);
+      AppState._pendingSubmit = true;
+      showAuthOverlay();
+      return;
+    }
     if (!r.ok) {
       const body = await r.json().catch(() => ({}));
       const msg = body.detail
@@ -301,7 +297,9 @@ function stopElapsed() {
 async function loadRecentAnalyses() {
   try {
     const r = await fetch('/api/sessions');
+    if (!r.ok) return;   // 401 before login — silently skip
     const sessions = await r.json();
+    if (!Array.isArray(sessions)) return;
     AppState.recentAnalyses = sessions;
     renderRecentAnalyses(sessions);
   } catch (e) {
