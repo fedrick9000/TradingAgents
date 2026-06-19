@@ -201,8 +201,68 @@ function stopElapsed() {
   clearInterval(AppState.elapsedInterval);
 }
 
-// ── recent analyses (stub — populated by Task 7) ──────────────────────────
-function loadRecentAnalyses() { /* Task 7 */ }
+// ── recent analyses ───────────────────────────────────────────────────────
+async function loadRecentAnalyses() {
+  try {
+    const r = await fetch('/api/sessions');
+    const sessions = await r.json();
+    AppState.recentAnalyses = sessions;
+    renderRecentAnalyses(sessions);
+  } catch (e) {
+    // Non-fatal — recent list is optional
+  }
+}
+
+function renderRecentAnalyses(sessions) {
+  const section = document.getElementById('recent-section');
+  const list    = document.getElementById('recent-list');
+  if (!sessions || sessions.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+  list.innerHTML = '';
+  // Show newest first
+  [...sessions].reverse().forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'recent-item';
+    li.innerHTML = `
+      <span class="recent-ticker">${s.ticker}</span>
+      <span class="recent-date">${s.date}</span>
+      <span class="recent-signal ${s.signal}">${s.signal || '—'}</span>
+      <span class="recent-meta">${s.provider} / ${s.model}</span>
+      <span class="recent-elapsed">${formatElapsed(s.elapsed)}</span>`;
+    li.addEventListener('click', () => replaySession(s));
+    list.appendChild(li);
+  });
+}
+
+function formatElapsed(secs) {
+  if (!secs) return '';
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+async function replaySession(session) {
+  try {
+    const r = await fetch(`/api/sessions/${session.session_id}/events`);
+    const { events } = await r.json();
+    AppState.currentMeta = {
+      ticker: session.ticker,
+      date:   session.date,
+      provider: `${session.provider}/${session.model}`,
+    };
+
+    // POC: default all 4 analyst panels for replay (session metadata doesn't store selection)
+    transitionToRunning(['market', 'social', 'news', 'fundamentals']);
+
+    events.forEach(ev => handleEvent(ev));
+    transitionToComplete();
+  } catch (e) {
+    console.error('Replay failed', e);
+  }
+}
 
 // ── story panel management ────────────────────────────────────────────────
 function resetStoryPanels(selectedAnalysts) {
@@ -468,9 +528,101 @@ function onReport(event) {
   }
 }
 
-// Stubs for Task 7 — overridden by later appends
-function onDebateUpdate(event) { /* Task 7 */ }
-function onDecision(event) { /* Task 7 */ }
+// ── debate panel updates ──────────────────────────────────────────────────
+const INVEST_SPEAKER_ID = {
+  'Bull Researcher':    'invest-bull-content',
+  'Bear Researcher':    'invest-bear-content',
+  'Research Manager':   'invest-judge-content',
+};
+const RISK_SPEAKER_ID = {
+  'Aggressive Analyst':  'risk-agg-content',
+  'Conservative Analyst':'risk-con-content',
+  'Neutral Analyst':     'risk-neu-content',
+  'Portfolio Manager':   'risk-judge-content',
+};
+
+function renderDebateContent(elId, content) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.classList.remove('muted');
+  el.innerHTML = typeof marked !== 'undefined'
+    ? marked.parse(content)
+    : content.replace(/\n/g, '<br>');
+}
+
+function onDebateUpdate(event) {
+  const { debate, speaker, content } = event;
+
+  if (debate === 'investment') {
+    const elId = INVEST_SPEAKER_ID[speaker];
+    if (elId) {
+      renderDebateContent(elId, content);
+
+      // If it's the judge, render in judgment zone (not debate columns)
+      if (speaker === 'Research Manager') {
+        const judgeEl = document.getElementById('invest-judge-content');
+        if (judgeEl) {
+          judgeEl.classList.remove('muted');
+          judgeEl.innerHTML = typeof marked !== 'undefined'
+            ? marked.parse(content)
+            : content;
+        }
+      }
+    }
+    const panel = document.getElementById('panel-invest-debate');
+    if (panel) {
+      openCard(panel);
+      panel.classList.remove('pending');
+      panel.classList.add(
+        speaker === 'Research Manager' ? 'done' : 'active'
+      );
+    }
+    appendSystemFeed(`Research Debate: ${speaker} (round ${event.round})`);
+  }
+
+  if (debate === 'risk') {
+    const elId = RISK_SPEAKER_ID[speaker];
+    if (elId) {
+      if (speaker === 'Portfolio Manager') {
+        renderDebateContent('risk-judge-content', content);
+      } else {
+        renderDebateContent(elId, content);
+      }
+    }
+    const panel = document.getElementById('panel-risk-debate');
+    if (panel) {
+      openCard(panel);
+      panel.classList.remove('pending');
+      panel.classList.add(
+        speaker === 'Portfolio Manager' ? 'done' : 'active'
+      );
+    }
+    appendSystemFeed(`Risk Debate: ${speaker} (round ${event.round})`);
+  }
+}
+
+// ── final decision ────────────────────────────────────────────────────────
+function onDecision(event) {
+  const { signal, full_text } = event;
+  const card = document.getElementById('panel-final');
+  if (!card) return;
+
+  card.innerHTML = `
+    <div class="final-body">
+      <div class="signal-badge signal-${signal}">${signal}</div>
+      <div class="final-text">${
+        typeof marked !== 'undefined'
+          ? marked.parse(full_text)
+          : full_text.replace(/\n/g, '<br>')
+      }</div>
+    </div>`;
+
+  card.classList.remove('pending', 'active');
+  card.classList.add('done');
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  appendSystemFeed(`Decision: ${signal}`);
+}
 
 // ── Task 6: story panel constants and helpers ─────────────────────────────
 const SECTION_TO_CARD = {
