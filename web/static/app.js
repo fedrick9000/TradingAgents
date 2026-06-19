@@ -204,11 +204,8 @@ function stopElapsed() {
 // ── recent analyses (stub — populated by Task 7) ──────────────────────────
 function loadRecentAnalyses() { /* Task 7 */ }
 
-// ── Stubs — replaced/extended by Tasks 5-7 ───────────────────────────────
-function buildPipelineStrip(selectedAnalysts) { /* Task 5 */ }
+// Stub — implemented by Task 6
 function resetStoryPanels(selectedAnalysts) { /* Task 6 */ }
-function clearFeed() { /* Task 5 */ }
-function openSSE(sessionId) { /* Task 5 */ }
 
 // ── Task 5: pipeline strip ─────────────────────────────────────────────────
 const TEAM_AGENTS = {
@@ -347,6 +344,8 @@ function openSSE(sessionId) {
   es.onerror = () => {
     if (AppState.phase === 'running') {
       appendSystemFeed('⚠ Connection lost — results may be incomplete.');
+      stopElapsed();
+      setAnalyzing(false);
     }
     es.close();
   };
