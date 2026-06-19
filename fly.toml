@@ -3,7 +3,7 @@
 #   fly secrets set ANTHROPIC_API_KEY=sk-...   (or whichever provider you use)
 #   fly deploy
 
-app = "trading-agent-web"
+app = "multipletradingagent"
 primary_region = "sin"
 
 [build]
