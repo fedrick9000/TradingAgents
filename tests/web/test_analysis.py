@@ -158,3 +158,39 @@ def test_unselected_analyst_agent_not_in_status():
     state = AnalysisState("s11", ["market"])  # only market selected
     assert "Sentiment Analyst" not in state.agent_status
     assert "Market Analyst" in state.agent_status
+
+
+def test_signal_extraction_prefers_rating_header_over_prose():
+    import json
+    from web.analysis import AnalysisState
+    # Realistic PM decision: Rating header says Overweight, prose mentions "sell"
+    decision_text = (
+        "**Rating**: Overweight\n\n"
+        "**Executive Summary**: Despite pressure that may lead some to sell, "
+        "fundamentals support an overweight position."
+    )
+    state = AnalysisState("s_rating", ["market"])
+    state.ingest({"messages": [], "final_trade_decision": decision_text})
+    q = state.get_queue()
+    events = []
+    while not q.empty():
+        events.append(json.loads(q.get_nowait()))
+    decision_ev = next(e for e in events if e["type"] == "decision")
+    assert decision_ev["signal"] == "OVERWEIGHT"
+
+
+def test_signal_extraction_underweight_over_buy_in_prose():
+    import json
+    from web.analysis import AnalysisState
+    decision_text = (
+        "**Rating**: Underweight\n\n"
+        "We recommend investors buy defensive positions instead of this stock."
+    )
+    state = AnalysisState("s_uw", ["market"])
+    state.ingest({"messages": [], "final_trade_decision": decision_text})
+    q = state.get_queue()
+    events = []
+    while not q.empty():
+        events.append(json.loads(q.get_nowait()))
+    decision_ev = next(e for e in events if e["type"] == "decision")
+    assert decision_ev["signal"] == "UNDERWEIGHT"

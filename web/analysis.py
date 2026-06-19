@@ -163,8 +163,16 @@ class AnalysisState:
 
     @staticmethod
     def _extract_signal(text: str) -> str:
+        import re
+        # Try to parse the **Rating**: header first (canonical PM decision format)
+        m = re.search(r'\*\*Rating\*\*\s*:\s*(\w+)', text, re.IGNORECASE)
+        if m:
+            word = m.group(1).upper()
+            if word in ("BUY", "SELL", "OVERWEIGHT", "UNDERWEIGHT", "HOLD"):
+                return word
+        # Fallback: scan full text (order: longest/rarest first to minimise false positives)
         upper = text.upper()
-        for s in SIGNALS:
+        for s in ("OVERWEIGHT", "UNDERWEIGHT", "BUY", "SELL", "HOLD"):
             if s in upper:
                 return s
         return "HOLD"

@@ -226,6 +226,8 @@ def _run_stream(session_id: str, req: AnalyzeRequest) -> None:
         completed_sessions.append(entry)
         if len(completed_sessions) > _MAX_SESSIONS:
             completed_sessions.pop(0)
+        sessions.pop(session_id, None)
 
     except Exception as exc:  # noqa: BLE001
         state.put_error(str(exc))
+        sessions.pop(session_id, None)
