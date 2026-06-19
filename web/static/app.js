@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProviders();
   wireForm();
   wireAdvancedToggle();
+  wireHomeBtn();
   loadRecentAnalyses();
 });
 
@@ -145,8 +146,11 @@ async function submitForm() {
 }
 
 function setAnalyzing(busy) {
-  document.getElementById('analyze-btn').disabled = busy;
-  document.getElementById('analyze-btn').textContent = busy ? 'Analysing…' : 'Analyze';
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = busy;
+  btn.innerHTML = busy
+    ? '<span class="btn-icon">⏳</span> Analysing…'
+    : '<span class="btn-icon">⚡</span> Start Analysis';
 }
 
 function showError(msg) {
@@ -183,7 +187,39 @@ function transitionToRunning(selectedAnalysts) {
 function transitionToComplete() {
   AppState.phase = 'complete';
   stopElapsed();
-  // Final decision card is already rendered — nothing else needed for POC
+  setConnectionStatus(false);
+}
+
+function transitionToIdle() {
+  if (AppState.eventSource) {
+    AppState.eventSource.close();
+    AppState.eventSource = null;
+  }
+  stopElapsed();
+  setAnalyzing(false);
+  AppState.phase = 'idle';
+  document.getElementById('running-view').classList.add('hidden');
+  document.getElementById('idle-view').classList.remove('hidden');
+  loadRecentAnalyses();
+}
+
+function wireHomeBtn() {
+  const btn = document.getElementById('home-btn');
+  if (btn) btn.addEventListener('click', transitionToIdle);
+}
+
+function scrollToRecent() {
+  const el = document.getElementById('recent-section');
+  if (el && !el.classList.contains('hidden')) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function setConnectionStatus(connected) {
+  const dot = document.getElementById('status-dot');
+  if (!dot) return;
+  dot.classList.toggle('connected',    connected);
+  dot.classList.toggle('disconnected', !connected);
 }
 
 // ── elapsed timer ─────────────────────────────────────────────────────────
@@ -433,6 +469,8 @@ function openSSE(sessionId) {
   const es = new EventSource(`/api/stream/${sessionId}`);
   AppState.eventSource = es;
 
+  es.onopen = () => setConnectionStatus(true);
+
   es.onmessage = e => {
     try {
       const event = JSON.parse(e.data);
@@ -443,6 +481,7 @@ function openSSE(sessionId) {
   };
 
   es.onerror = () => {
+    setConnectionStatus(false);
     if (AppState.phase === 'running') {
       appendSystemFeed('⚠ Connection lost — results may be incomplete.');
       stopElapsed();
