@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TradingAgents</title>
-  <link rel="stylesheet" href="/static/style.css?v=4" />
+  <link rel="stylesheet" href="/static/style.css?v=5" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
-  <script src="/static/app.js?v=4" defer></script>
+  <script src="/static/app.js?v=5" defer></script>
 </head>
 <body>
 
@@ -351,6 +351,24 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ AUTH OVERLAY ═══════════════════ -->
+  <div id="auth-overlay" class="auth-overlay hidden">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-logo-mark">📈</div>
+        <span class="auth-logo-text">TradingAgents</span>
+      </div>
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-subtitle">Enter your access password to continue</p>
+      <div class="form-row">
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <p id="auth-error" class="auth-error hidden">Incorrect password — try again.</p>
+      <button id="auth-btn" class="auth-btn" type="button">Access Dashboard</button>
     </div>
   </div>
 

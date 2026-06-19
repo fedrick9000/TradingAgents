@@ -1,19 +1,68 @@
 import asyncio
 import datetime
+import os
 import queue
+import secrets
 import threading
 import time
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator
 
 from web.analysis import AnalysisState
 
 app = FastAPI(title="TradingAgents Web UI")
+
+# ── auth ──────────────────────────────────────────────────────────────────
+_ACCESS_PASSWORD = os.getenv("ACCESS_PASSWORD", "")
+_auth_tokens: set[str] = set()
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    # Protect all /api/ routes except /api/auth itself
+    if _ACCESS_PASSWORD and path.startswith("/api/") and path != "/api/auth":
+        token = request.cookies.get("ta_auth")
+        if not token or token not in _auth_tokens:
+            return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+    return await call_next(request)
+
+
+class AuthRequest(BaseModel):
+    password: str
+
+
+@app.post("/api/auth")
+def login(req: AuthRequest, response: JSONResponse.__class__ = None):
+    from fastapi.responses import JSONResponse as _JSONResponse
+    if _ACCESS_PASSWORD and req.password != _ACCESS_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    token = secrets.token_hex(32)
+    _auth_tokens.add(token)
+    resp = _JSONResponse({"ok": True})
+    resp.set_cookie(
+        key="ta_auth",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,   # 30 days
+    )
+    return resp
+
+
+@app.post("/api/logout")
+def logout(request: Request):
+    token = request.cookies.get("ta_auth")
+    if token:
+        _auth_tokens.discard(token)
+    resp = JSONResponse({"ok": True})
+    resp.delete_cookie("ta_auth")
+    return resp
 
 # ── static files ──────────────────────────────────────────────────────────
 _STATIC = Path(__file__).parent / "static"

@@ -19,13 +19,72 @@ const AppState = {
 
 // ── bootstrap ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  wireAuthForm();
+  checkAuth();
+});
+
+// ── auth ───────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/providers');
+    if (r.status === 401) { showAuthOverlay(); return; }
+    if (!r.ok) throw new Error('server error');
+    const { providers } = await r.json();
+    AppState.providers = providers;
+    initApp(providers);
+  } catch {
+    showAuthOverlay();
+  }
+}
+
+function initApp(providers) {
+  hideAuthOverlay();
+  populateProviderSelect(providers);
   setDefaultDate();
-  loadProviders();
   wireForm();
   wireAdvancedToggle();
   wireHomeBtn();
   loadRecentAnalyses();
-});
+}
+
+function showAuthOverlay() {
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+function hideAuthOverlay() {
+  document.getElementById('auth-overlay').classList.add('hidden');
+}
+
+function wireAuthForm() {
+  const btn   = document.getElementById('auth-btn');
+  const input = document.getElementById('auth-password');
+  const err   = document.getElementById('auth-error');
+
+  async function attempt() {
+    err.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+    try {
+      const r = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: input.value }),
+      });
+      if (!r.ok) throw new Error('wrong');
+      input.value = '';
+      await checkAuth();
+    } catch {
+      err.classList.remove('hidden');
+      input.focus();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Access Dashboard';
+    }
+  }
+
+  btn.addEventListener('click', attempt);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+}
 
 function setDefaultDate() {
   const d = document.getElementById('date-input');
@@ -37,6 +96,7 @@ function setDefaultDate() {
 async function loadProviders() {
   try {
     const r = await fetch('/api/providers');
+    if (r.status === 401) { showAuthOverlay(); return; }
     const { providers } = await r.json();
     AppState.providers = providers;
     populateProviderSelect(providers);
