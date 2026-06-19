@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install dependencies before copying full source for better layer caching.
+# Stub packages let setuptools resolve deps without real source files.
+COPY pyproject.toml .
+RUN mkdir -p tradingagents cli web && \
+    touch tradingagents/__init__.py cli/__init__.py web/__init__.py && \
+    pip install --no-cache-dir ".[web]"
+
+# Copy full source (overwrites stubs; reinstall without deps to register real code)
+COPY . .
+RUN pip install --no-cache-dir --no-deps .
+
+EXPOSE 8080
+
+# Single worker — in-memory session store is not shared across processes
+CMD ["uvicorn", "web.server:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

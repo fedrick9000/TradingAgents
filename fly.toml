@@ -1,0 +1,28 @@
+# Trading Agent Web UI — Fly.io configuration
+# Change `app` to your Fly.io app name, then run:
+#   fly secrets set ANTHROPIC_API_KEY=sk-...   (or whichever provider you use)
+#   fly deploy
+
+app = "trading-agent-web"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Scale to zero when idle — restarts on first request (~3s cold start)
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

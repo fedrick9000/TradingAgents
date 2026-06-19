@@ -5,11 +5,17 @@
 .idea
 .vscode
 .DS_Store
+.superpowers
+.pytest_cache
 __pycache__
+*.pyc
+*.pyo
 *.egg-info
 build
 dist
 results
 eval_results
+reports
+uv.lock
 Dockerfile
 docker-compose.yml
