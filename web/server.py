@@ -127,7 +127,8 @@ def get_providers():
 
 @app.get("/api/search")
 def search_tickers(q: str = ""):
-    if len(q.strip()) < 2:
+    q = q.strip()[:64]
+    if len(q) < 2:
         return []
     try:
         result = yf.Search(query=q, max_results=6, enable_fuzzy_query=True)
