@@ -9,6 +9,8 @@ import time
 import uuid
 from pathlib import Path
 
+import yfinance as yf
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -121,6 +123,27 @@ PROVIDERS: dict[str, dict] = {
 @app.get("/api/providers")
 def get_providers():
     return {"providers": PROVIDERS}
+
+
+@app.get("/api/search")
+def search_tickers(q: str = ""):
+    if len(q.strip()) < 2:
+        return []
+    try:
+        result = yf.Search(query=q, max_results=6, enable_fuzzy_query=True)
+        quotes = result.quotes if hasattr(result, "quotes") else []
+        return [
+            {
+                "symbol":   r.get("symbol", ""),
+                "name":     r.get("longname") or r.get("shortname") or "",
+                "exchange": r.get("exchange", ""),
+                "type":     r.get("quoteType", ""),
+            }
+            for r in quotes
+            if r.get("symbol")
+        ]
+    except Exception:
+        return []
 
 
 # ── PPT export ────────────────────────────────────────────────────────────
