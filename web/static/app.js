@@ -913,7 +913,15 @@ function renderHeroCard(signal, fullText) {
   document.getElementById('pptx-btn').addEventListener('click', exportPPTX);
 }
 
-function downloadPDF() { /* implemented in Task 8 */ }
+function downloadPDF() {
+  // Open all completed/active story cards so their content prints
+  document.querySelectorAll('#story-panels .story-card').forEach(card => {
+    if (!card.classList.contains('pending') && !card.classList.contains('hidden')) {
+      card.classList.add('open');
+    }
+  });
+  window.print();
+}
 function exportPPTX()  { /* implemented in Task 10 */ }
 
 // ── final decision ────────────────────────────────────────────────────────
