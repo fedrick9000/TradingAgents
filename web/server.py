@@ -26,7 +26,7 @@ _auth_tokens: set[str] = set()
 
 
 _PROTECTED = ("/api/analyze", "/api/stream/", "/api/sessions",
-              "/api/logout", "/api/export/pptx")
+              "/api/logout")
 
 
 @app.middleware("http")
