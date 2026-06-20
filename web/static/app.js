@@ -922,7 +922,47 @@ function downloadPDF() {
   });
   window.print();
 }
-function exportPPTX()  { /* implemented in Task 10 */ }
+async function exportPPTX() {
+  const btn = document.getElementById('pptx-btn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  const payload = {
+    ticker:        AppState.currentMeta.ticker || '',
+    date:          AppState.currentMeta.date   || '',
+    signal:        AppState.lastSignal         || 'HOLD',
+    reports:       AppState.reports,
+    debate:        AppState.debateData,
+    decision_text: AppState.lastDecisionText   || '',
+  };
+
+  try {
+    const r = await fetch('/api/export/pptx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      const body = await r.json().catch(() => ({}));
+      throw new Error(body.detail || 'Export failed');
+    }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${payload.ticker}-${payload.date}-analysis.pptx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert(`PPT generation failed: ${e.message}`);
+  } finally {
+    btn.disabled  = false;
+    btn.textContent = 'Generate PPT';
+  }
+}
 
 // ── final decision ────────────────────────────────────────────────────────
 function onDecision(event) {
