@@ -125,12 +125,30 @@ def get_providers():
 
 # ── PPT export ────────────────────────────────────────────────────────────
 class ExportRequest(BaseModel):
-    ticker: str
-    date: str
-    signal: str
+    ticker: str = ''
+    date: str = ''
+    signal: str = 'HOLD'
     reports: dict = {}
     debate: dict = {}
-    decision_text: str = ""
+    decision_text: str = ''
+
+    @field_validator('ticker')
+    @classmethod
+    def sanitise_ticker(cls, v: str) -> str:
+        import re
+        return re.sub(r'[^A-Z0-9.\-^/]', '', v.strip().upper())[:20]
+
+    @field_validator('date')
+    @classmethod
+    def sanitise_date(cls, v: str) -> str:
+        import re
+        return re.sub(r'[^0-9\-]', '', v)[:10]
+
+    @field_validator('signal')
+    @classmethod
+    def sanitise_signal(cls, v: str) -> str:
+        allowed = {'BUY', 'SELL', 'HOLD', 'OVERWEIGHT', 'UNDERWEIGHT', 'NEUTRAL'}
+        return v.strip().upper() if v.strip().upper() in allowed else 'HOLD'
 
 
 @app.post("/api/export/pptx")
@@ -146,7 +164,10 @@ def export_pptx(req: ExportRequest):
         "debate":        req.debate,
         "decision_text": req.decision_text,
     }
-    pptx_bytes = generate_pptx(data)
+    try:
+        pptx_bytes = generate_pptx(data)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"PPT generation failed: {exc}")
     filename = f"{req.ticker}-{req.date}-analysis.pptx"
     return _Response(
         content=pptx_bytes,

@@ -800,6 +800,8 @@ function onDebateUpdate(event) {
     const elId = INVEST_SPEAKER_ID[speaker];
     if (elId) {
       renderDebateContent(elId, content);
+      AppState.debateData[debate] = AppState.debateData[debate] || {};
+      AppState.debateData[debate][speaker] = content;
 
       // If it's the judge, render in judgment zone (not debate columns)
       if (speaker === 'Research Manager') {
@@ -826,6 +828,8 @@ function onDebateUpdate(event) {
   if (debate === 'risk') {
     const elId = RISK_SPEAKER_ID[speaker];
     if (elId) {
+      AppState.debateData[debate] = AppState.debateData[debate] || {};
+      AppState.debateData[debate][speaker] = content;
       if (speaker === 'Portfolio Manager') {
         renderDebateContent('risk-judge-content', content);
       } else {

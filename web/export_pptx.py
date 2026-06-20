@@ -10,13 +10,12 @@ import re
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import numpy as np
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 
 # ── palette ───────────────────────────────────────────────────────────────
 _BG    = RGBColor(0x0F, 0x17, 0x2A)
