@@ -844,9 +844,87 @@ function onDebateUpdate(event) {
   }
 }
 
+// ── hero card helpers ─────────────────────────────────────────────────────
+function extractCompanyName(ticker, marketReport) {
+  if (!marketReport) return ticker;
+  const escaped = ticker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = marketReport.match(new RegExp(escaped + '\\s*\\(([^)]+)\\)'));
+  return m ? m[1].trim() : ticker;
+}
+
+function extractSynthesis(fullText) {
+  // Return the first substantive paragraph (skip headings and short lines)
+  const lines = fullText.split('\n');
+  let para = '';
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#') || line.startsWith('**') && line.endsWith('**')) continue;
+    // Strip inline bold/italic markdown
+    const clean = line.replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1').trim();
+    if (clean.length < 30) continue;
+    para = clean;
+    break;
+  }
+  return para.length > 320 ? para.slice(0, 317) + '…' : para;
+}
+
+function extractKeyLevels(fullText) {
+  const supportM  = fullText.match(/support[^.]{0,60}?((?:HKD|USD|\$|€)\s*[\d,.]+)/i);
+  const resistM   = fullText.match(/(?:resist|reclaim)[^.]{0,60}?((?:HKD|USD|\$|€)\s*[\d,.]+)/i);
+  const levels = [];
+  if (supportM) levels.push(`Support ${supportM[1]}`);
+  if (resistM)  levels.push(`Resistance ${resistM[1]}`);
+  return levels.join(' · ');
+}
+
+function renderHeroCard(signal, fullText) {
+  const panels = document.getElementById('story-panels');
+  const old = document.getElementById('hero-card');
+  if (old) old.remove();
+
+  const { ticker, date } = AppState.currentMeta;
+  const company  = extractCompanyName(ticker, AppState.reports.market_report);
+  const synopsis = extractSynthesis(fullText);
+  const levels   = extractKeyLevels(fullText);
+
+  const heroClass = signal.replace(/\s+/g, '-');   // e.g. "OVERWEIGHT" → "OVERWEIGHT"
+
+  const card = document.createElement('div');
+  card.id = 'hero-card';
+  card.className = `hero-card story-card hero-${heroClass}`;
+
+  card.innerHTML = `
+    <div class="hero-signal-badge signal-${signal}">${signal}</div>
+    <div class="hero-meta">
+      <span class="hero-ticker">${ticker}</span>
+      <span class="hero-date">${company !== ticker ? company + ' · ' : ''}${date}</span>
+    </div>
+    ${synopsis ? `<div class="hero-summary">${synopsis}</div>` : ''}
+    ${levels    ? `<div class="hero-key-levels">${levels}</div>` : ''}
+    <div class="hero-actions">
+      <button id="pdf-btn"  class="export-btn export-btn-pdf">Download PDF</button>
+      <button id="pptx-btn" class="export-btn export-btn-pptx">Generate PPT</button>
+    </div>`;
+
+  panels.insertBefore(card, panels.firstChild);
+  panels.scrollTop = 0;
+
+  document.getElementById('pdf-btn').addEventListener('click', downloadPDF);
+  document.getElementById('pptx-btn').addEventListener('click', exportPPTX);
+}
+
+function downloadPDF() { /* implemented in Task 8 */ }
+function exportPPTX()  { /* implemented in Task 9 */ }
+
 // ── final decision ────────────────────────────────────────────────────────
 function onDecision(event) {
   const { signal, full_text } = event;
+
+  // Store for PPT/PDF export
+  AppState.lastSignal = signal;
+  AppState.lastDecisionText = full_text;
+
+  // Update final panel
   const card = document.getElementById('panel-final');
   if (!card) return;
 
@@ -862,7 +940,9 @@ function onDecision(event) {
 
   card.classList.remove('pending', 'active');
   card.classList.add('done');
-  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Render hero card at top of story panels
+  renderHeroCard(signal, full_text);
 
   appendSystemFeed(`Decision: ${signal}`);
 }
