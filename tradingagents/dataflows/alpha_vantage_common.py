@@ -1,10 +1,13 @@
 import json
+import logging
 import os
 from datetime import datetime
 from io import StringIO
 
 import pandas as pd
 import requests
+
+logger = logging.getLogger(__name__)
 
 from .errors import VendorNotConfiguredError, VendorRateLimitError
 
@@ -103,11 +106,13 @@ def _make_api_request(function_name: str, params: dict) -> dict | str:
     if notice:
         low = notice.lower()
         if any(m in low for m in ("rate limit", "requests per day", "call frequency", "premium")):
-            raise AlphaVantageRateLimitError(f"Alpha Vantage rate limit exceeded: {notice}")
+            logger.debug("Alpha Vantage API notice: %s", notice)
+            raise AlphaVantageRateLimitError("Alpha Vantage rate limit exceeded — check your plan tier.")
         if "api key" in low or "apikey" in low:
             # Reuse the existing "not configured" error so a bad key surfaces as
             # a real, actionable failure rather than a mislabeled rate limit (#991).
-            raise AlphaVantageNotConfiguredError(f"Alpha Vantage API key invalid or missing: {notice}")
+            logger.debug("Alpha Vantage API key notice: %s", notice)
+            raise AlphaVantageNotConfiguredError("Alpha Vantage API key invalid or missing.")
 
     return response_text
 

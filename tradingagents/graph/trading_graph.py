@@ -454,6 +454,9 @@ class TradingAgentsGraph:
         directory = Path(self.config["results_dir"]) / safe_ticker / "TradingAgentsStrategy_logs"
         directory.mkdir(parents=True, exist_ok=True)
 
+        import re as _re
+        if not _re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(trade_date)):
+            raise ValueError(f"Invalid trade_date for path construction: {trade_date!r}")
         log_path = directory / f"full_states_log_{trade_date}.json"
         with open(log_path, "w", encoding="utf-8") as f:
             json.dump(self.log_states_dict[str(trade_date)], f, indent=4)

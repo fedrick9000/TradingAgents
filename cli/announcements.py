@@ -2,6 +2,7 @@ import getpass
 
 import requests
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 
 from cli.config import CLI_CONFIG
@@ -36,7 +37,7 @@ def display_announcements(console: Console, data: dict) -> None:
     if not announcements:
         return
 
-    content = "\n".join(announcements)
+    content = "\n".join(escape(a) for a in announcements)
 
     panel = Panel(
         content,

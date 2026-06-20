@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime
 from typing import Annotated
 
 import pandas as pd
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
+
+logger = logging.getLogger(__name__)
 
 from .stockstats_utils import (
     StockstatsUtils,
@@ -335,7 +338,8 @@ def get_fundamentals(
     except NoMarketDataError:
         raise
     except Exception as e:
-        return f"Error retrieving fundamentals for {ticker}: {str(e)}"
+        logger.error("Error retrieving fundamentals for %s: %s", ticker, e, exc_info=True)
+        return f"Error retrieving fundamentals for {ticker}: data unavailable."
 
 
 def get_balance_sheet(
@@ -370,7 +374,8 @@ def get_balance_sheet(
     except NoMarketDataError:
         raise
     except Exception as e:
-        return f"Error retrieving balance sheet for {ticker}: {str(e)}"
+        logger.error("Error retrieving balance sheet for %s: %s", ticker, e, exc_info=True)
+        return f"Error retrieving balance sheet for {ticker}: data unavailable."
 
 
 def get_cashflow(
@@ -405,7 +410,8 @@ def get_cashflow(
     except NoMarketDataError:
         raise
     except Exception as e:
-        return f"Error retrieving cash flow for {ticker}: {str(e)}"
+        logger.error("Error retrieving cash flow for %s: %s", ticker, e, exc_info=True)
+        return f"Error retrieving cash flow for {ticker}: data unavailable."
 
 
 def get_income_statement(
@@ -440,7 +446,8 @@ def get_income_statement(
     except NoMarketDataError:
         raise
     except Exception as e:
-        return f"Error retrieving income statement for {ticker}: {str(e)}"
+        logger.error("Error retrieving income statement for %s: %s", ticker, e, exc_info=True)
+        return f"Error retrieving income statement for {ticker}: data unavailable."
 
 
 def get_insider_transactions(
@@ -467,4 +474,5 @@ def get_insider_transactions(
         return header + csv_string
 
     except Exception as e:
-        return f"Error retrieving insider transactions for {ticker}: {str(e)}"
+        logger.error("Error retrieving insider transactions for %s: %s", ticker, e, exc_info=True)
+        return f"Error retrieving insider transactions for {ticker}: data unavailable."

@@ -20,7 +20,13 @@ class TradingMemoryLog:
         self._log_path = None
         path = cfg.get("memory_log_path")
         if path:
-            self._log_path = Path(path).expanduser()
+            resolved = Path(path).expanduser().resolve()
+            allowed_base = Path.home().resolve()
+            if not str(resolved).startswith(str(allowed_base)):
+                raise ValueError(
+                    f"memory_log_path must be within the user home directory: {resolved}"
+                )
+            self._log_path = resolved
             self._log_path.parent.mkdir(parents=True, exist_ok=True)
         # Optional cap on resolved entries. None disables rotation.
         self._max_entries = cfg.get("memory_log_max_entries")

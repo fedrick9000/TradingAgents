@@ -115,7 +115,8 @@ def _request(path: str, params: dict) -> dict:
             message = response.json().get("error_message", response.text)
         except ValueError:
             message = response.text
-        raise ValueError(f"FRED request failed: {message}")
+        logger.debug("FRED request failed: %s", message)
+        raise ValueError("FRED request failed — check your API key and parameters.")
     response.raise_for_status()
     return response.json()
 
