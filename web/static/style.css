@@ -959,3 +959,160 @@ body {
   .debate-col   { border-right: none; border-bottom: 1px solid var(--border); }
   .page-title   { font-size: 1.3rem; }
 }
+
+/* ── team block interactivity ──────────────────────────────── */
+.sidebar .team-block {
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 0;
+}
+.sidebar .team-block:hover { background: rgba(255,255,255,0.05); }
+
+/* ── header progress indicator ─────────────────────────────── */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.progress-fraction {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.progress-bar-wrap {
+  width: 72px;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background-color 0.3s;
+  background: var(--accent);
+}
+.progress-agent-name {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── summary hero card ─────────────────────────────────────── */
+.hero-card {
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 22px;
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-md);
+  animation: heroIn 0.35s ease-out;
+}
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-card.hero-BUY, .hero-card.hero-OVERWEIGHT {
+  border-color: #10B981;
+  box-shadow: 0 0 20px rgba(16,185,129,0.18), var(--shadow-md);
+}
+.hero-card.hero-SELL, .hero-card.hero-UNDERWEIGHT {
+  border-color: #EF4444;
+  box-shadow: 0 0 20px rgba(239,68,68,0.18), var(--shadow-md);
+}
+.hero-card.hero-HOLD, .hero-card.hero-NEUTRAL {
+  border-color: #F59E0B;
+  box-shadow: 0 0 20px rgba(245,158,11,0.18), var(--shadow-md);
+}
+.hero-signal-badge {
+  display: inline-block;
+  font-size: 1.4rem;
+  font-weight: 900;
+  padding: 8px 24px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+}
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.hero-ticker {
+  font-weight: 800;
+  color: var(--text);
+  font-size: 1rem;
+}
+.hero-date { font-size: 0.82rem; color: var(--muted); }
+.hero-summary {
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+.hero-key-levels {
+  font-size: 0.77rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+  font-family: ui-monospace, monospace;
+}
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.export-btn {
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.01em;
+}
+.export-btn-pdf {
+  background: var(--sidebar-bg);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(30,27,75,0.2);
+}
+.export-btn-pdf:hover { background: #2d2a6e; }
+.export-btn-pptx {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+}
+.export-btn-pptx:hover { background: #1d4ed8; }
+.export-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ── print / PDF export ────────────────────────────────────── */
+@media print {
+  .sidebar,
+  .running-header,
+  .live-feed,
+  .hero-actions,
+  .card-chevron,
+  #idle-view { display: none !important; }
+
+  .app-shell   { display: block !important; }
+  .main-content { display: block !important; }
+  .stage-layout {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .story-panels {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 8px !important;
+  }
+  .story-card { page-break-before: always; break-before: page; box-shadow: none !important; }
+  .hero-card  { page-break-before: avoid; break-before: avoid;
+                page-break-after: always; break-after: page; }
+  .story-card .card-body { display: block !important; }
+  .story-card.pending    { display: none !important; }
+  .card-markdown { font-size: 10pt !important; }
+}
