@@ -1116,3 +1116,59 @@ body {
   .story-card.pending    { display: none !important; }
   .card-markdown { font-size: 10pt !important; }
 }
+
+/* ── ticker autocomplete dropdown ────────────────────────────────────── */
+.ticker-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ticker-suggestions.hidden {
+  display: none;
+}
+
+.ticker-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.1s;
+}
+
+.ticker-suggestion-item:hover,
+.ticker-suggestion-item.active {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.ts-symbol {
+  font-weight: 700;
+  color: #a5b4fc;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.ts-name {
+  color: #e2e8f0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ts-exchange {
+  color: #64748b;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}

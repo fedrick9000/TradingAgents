@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireHomeBtn();
   wireAuthForm();
   loadRecentAnalyses();
+  wireTickerAutocomplete();
 });
 
 // ── auth overlay ───────────────────────────────────────────────────────────
@@ -170,6 +171,109 @@ function populateSelect(id, options) {
     opt.value = m;
     opt.textContent = m;
     sel.appendChild(opt);
+  });
+}
+
+// ── ticker autocomplete ───────────────────────────────────────────────
+function wireTickerAutocomplete() {
+  const input   = document.getElementById('ticker-input');
+  const formRow = input.closest('.form-row');
+  formRow.style.position = 'relative';
+
+  const ul = document.createElement('ul');
+  ul.id        = 'ticker-suggestions';
+  ul.className = 'ticker-suggestions hidden';
+  formRow.appendChild(ul);
+
+  let debounceTimer = null;
+  let activeIndex   = -1;
+
+  function closeSuggestions() {
+    ul.classList.add('hidden');
+    ul.innerHTML = '';
+    activeIndex  = -1;
+  }
+
+  function selectSuggestion(symbol) {
+    input.value = symbol;
+    closeSuggestions();
+  }
+
+  function setActive(items, index) {
+    items.forEach((item, i) => item.classList.toggle('active', i === index));
+  }
+
+  function renderSuggestions(results) {
+    ul.innerHTML = '';
+    activeIndex  = -1;
+    if (!results.length) { ul.classList.add('hidden'); return; }
+    results.forEach(r => {
+      const li = document.createElement('li');
+      li.className = 'ticker-suggestion-item';
+      const sym  = document.createElement('span');
+      sym.className   = 'ts-symbol';
+      sym.textContent = r.symbol;
+      const name = document.createElement('span');
+      name.className   = 'ts-name';
+      name.textContent = r.name;
+      const exch = document.createElement('span');
+      exch.className   = 'ts-exchange';
+      exch.textContent = r.exchange;
+      li.append(sym, name, exch);
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        selectSuggestion(r.symbol);
+      });
+      ul.appendChild(li);
+    });
+    ul.classList.remove('hidden');
+  }
+
+  async function fetchSuggestions(q) {
+    try {
+      const r = await fetch('/api/search?q=' + encodeURIComponent(q));
+      if (!r.ok) return [];
+      return await r.json();
+    } catch {
+      return [];
+    }
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value.trim();
+    if (q.length < 2) { closeSuggestions(); return; }
+    debounceTimer = setTimeout(async () => {
+      const results = await fetchSuggestions(q);
+      renderSuggestions(results);
+    }, 300);
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = Array.from(ul.querySelectorAll('.ticker-suggestion-item'));
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      setActive(items, activeIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      setActive(items, activeIndex);
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      selectSuggestion(items[activeIndex].querySelector('.ts-symbol').textContent);
+    } else if (e.key === 'Escape') {
+      closeSuggestions();
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(closeSuggestions, 150);
+  });
+
+  document.addEventListener('click', e => {
+    if (!formRow.contains(e.target)) closeSuggestions();
   });
 }
 
