@@ -283,6 +283,7 @@ function transitionToRunning(selectedAnalysts) {
 
   buildPipelineStrip(selectedAnalysts);
   resetStoryPanels(selectedAnalysts);
+  applyTeamColors();    // NEW — colors card headers after DOM is built
   clearFeed();
   startElapsed();
 }
@@ -448,6 +449,20 @@ function resetStoryPanels(selectedAnalysts) {
     `<div class="final-placeholder">Awaiting Portfolio Manager…</div>`;
 }
 
+function applyTeamColors() {
+  Object.entries(CARD_TEAM).forEach(([cardId, team]) => {
+    const card = document.getElementById(cardId);
+    if (!card || card.classList.contains('hidden')) return;
+    const color = TEAM_COLORS[team];
+    if (!color) return;
+    const header = card.querySelector('.card-header');
+    if (header) {
+      header.style.borderLeft = `4px solid ${color.hex}`;
+      header.style.background  = `rgba(${color.rgb}, 0.06)`;
+    }
+  });
+}
+
 // ── Task 5: pipeline strip ─────────────────────────────────────────────────
 const TEAM_AGENTS = {
   'Analyst Team':       ['Market Analyst', 'Sentiment Analyst', 'News Analyst', 'Fundamentals Analyst'],
@@ -504,6 +519,22 @@ function buildPipelineStrip(selectedAnalysts) {
       dotsEl.appendChild(dot);
     });
     block.appendChild(dotsEl);
+
+    // Click → scroll to matching report card
+    block.addEventListener('click', () => {
+      const targetId = TEAM_TO_SCROLL_TARGET[team];
+      if (targetId) {
+        const card = document.getElementById(targetId);
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (team === 'Analyst Team') {
+        // Scroll to first visible analyst card
+        const analystIds = ['panel-market', 'panel-sentiment', 'panel-news', 'panel-fundamentals'];
+        const first = analystIds.map(id => document.getElementById(id))
+                                .find(el => el && !el.classList.contains('hidden'));
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
     strip.appendChild(block);
   });
 
