@@ -370,7 +370,8 @@ function updateProgressIndicator(agent, status) {
   }
 
   const count = AppState.completedTeams.size;
-  const total = AppState.totalTeams || 5;
+  const total = AppState.totalTeams;
+  if (!total) return;
   if (fraction) fraction.textContent = `${count} / ${total}`;
   if (fill) fill.style.width = `${(count / total) * 100}%`;
 
