@@ -23,7 +23,8 @@ _ACCESS_PASSWORD = os.getenv("ACCESS_PASSWORD", "")
 _auth_tokens: set[str] = set()
 
 
-_PROTECTED = ("/api/analyze", "/api/stream/", "/api/sessions", "/api/logout")
+_PROTECTED = ("/api/analyze", "/api/stream/", "/api/sessions",
+              "/api/logout", "/api/export/pptx")
 
 
 @app.middleware("http")
@@ -120,6 +121,38 @@ PROVIDERS: dict[str, dict] = {
 @app.get("/api/providers")
 def get_providers():
     return {"providers": PROVIDERS}
+
+
+# ── PPT export ────────────────────────────────────────────────────────────
+class ExportRequest(BaseModel):
+    ticker: str
+    date: str
+    signal: str
+    reports: dict = {}
+    debate: dict = {}
+    decision_text: str = ""
+
+
+@app.post("/api/export/pptx")
+def export_pptx(req: ExportRequest):
+    from fastapi.responses import Response as _Response
+    from web.export_pptx import generate_pptx
+
+    data = {
+        "ticker":        req.ticker,
+        "date":          req.date,
+        "signal":        req.signal,
+        "reports":       req.reports,
+        "debate":        req.debate,
+        "decision_text": req.decision_text,
+    }
+    pptx_bytes = generate_pptx(data)
+    filename = f"{req.ticker}-{req.date}-analysis.pptx"
+    return _Response(
+        content=pptx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ── session store ─────────────────────────────────────────────────────────
