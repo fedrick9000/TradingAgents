@@ -914,7 +914,7 @@ function renderHeroCard(signal, fullText) {
 }
 
 function downloadPDF() { /* implemented in Task 8 */ }
-function exportPPTX()  { /* implemented in Task 9 */ }
+function exportPPTX()  { /* implemented in Task 10 */ }
 
 // ── final decision ────────────────────────────────────────────────────────
 function onDecision(event) {
