@@ -16,10 +16,53 @@ const AppState = {
   elapsedInterval: null,
   startTime: null,
   _pendingSubmit: false,  // retry flag: set when 401 triggers auth overlay
+  completedTeams: new Set(),   // NEW
+  totalTeams: 0,               // NEW
+  lastSignal: null,            // NEW
+  lastDecisionText: null,      // NEW
 };
+
+// ── team colour palette ────────────────────────────────────────────────────
+const TEAM_COLORS = {
+  'Analyst Team':         { hex: '#3B82F6', rgb: '59,130,246' },
+  'Research Team':        { hex: '#8B5CF6', rgb: '139,92,246' },
+  'Trading Team':         { hex: '#10B981', rgb: '16,185,129' },
+  'Risk Management':      { hex: '#EF4444', rgb: '239,68,68'  },
+  'Portfolio Management': { hex: '#F59E0B', rgb: '245,158,11' },
+};
+
+// agent → team lookup (derived at module load from TEAM_AGENTS defined below)
+// Populated in wireTeamLookups() called from DOMContentLoaded
+const AGENT_TO_TEAM = {};
+
+const TEAM_TO_SCROLL_TARGET = {
+  'Analyst Team':         null,              // scrolls to first visible analyst card
+  'Research Team':        'panel-invest-debate',
+  'Trading Team':         'panel-trader',
+  'Risk Management':      'panel-risk-debate',
+  'Portfolio Management': 'panel-final',
+};
+
+const CARD_TEAM = {
+  'panel-market':        'Analyst Team',
+  'panel-sentiment':     'Analyst Team',
+  'panel-news':          'Analyst Team',
+  'panel-fundamentals':  'Analyst Team',
+  'panel-invest-debate': 'Research Team',
+  'panel-trader':        'Trading Team',
+  'panel-risk-debate':   'Risk Management',
+  'panel-final':         'Portfolio Management',
+};
+
+function wireTeamLookups() {
+  Object.entries(TEAM_AGENTS).forEach(([team, agents]) => {
+    agents.forEach(agent => { AGENT_TO_TEAM[agent] = team; });
+  });
+}
 
 // ── bootstrap ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  wireTeamLookups();   // NEW — must run before any agent event
   setDefaultDate();
   loadProviders();
   wireForm();
