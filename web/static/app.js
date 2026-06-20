@@ -279,13 +279,19 @@ function wireTickerAutocomplete() {
 
 // ── ticker chips ──────────────────────────────────────────────────────────
 function wireTickerChips() {
-  document.querySelectorAll('.ticker-chip').forEach(btn => {
+  const chips = document.querySelectorAll('.ticker-chip');
+  const input = document.getElementById('ticker-input');
+  chips.forEach(btn => {
     btn.addEventListener('click', () => {
-      const input = document.getElementById('ticker-input');
       input.value = btn.dataset.ticker;
-      input.dispatchEvent(new Event('input'));
+      chips.forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      const ul = document.getElementById('ticker-suggestions');
+      if (ul) { ul.classList.add('hidden'); ul.innerHTML = ''; }
+      input.focus();
     });
   });
+  input.addEventListener('input', () => chips.forEach(c => c.classList.remove('selected')));
 }
 
 // ── form submission ───────────────────────────────────────────────────────
