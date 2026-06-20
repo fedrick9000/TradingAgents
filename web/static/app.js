@@ -1022,13 +1022,18 @@ function renderHeroCard(signal, fullText) {
 }
 
 function downloadPDF() {
-  // Open all completed/active story cards so their content prints
+  const ticker = AppState.currentMeta.ticker || 'analysis';
+  const date   = AppState.currentMeta.date   || '';
+  const orig   = document.title;
+  document.title = date ? `${ticker}-${date}-analysis` : `${ticker}-analysis`;
+
   document.querySelectorAll('#story-panels .story-card').forEach(card => {
     if (!card.classList.contains('pending') && !card.classList.contains('hidden')) {
       card.classList.add('open');
     }
   });
   window.print();
+  setTimeout(() => { document.title = orig; }, 1000);
 }
 async function exportPPTX() {
   const btn = document.getElementById('pptx-btn');
