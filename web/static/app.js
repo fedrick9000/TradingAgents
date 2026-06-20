@@ -467,18 +467,27 @@ function buildPipelineStrip(selectedAnalysts) {
   };
   const selectedAgents = new Set(selectedAnalysts.map(k => analystMap[k]).filter(Boolean));
 
+  let visibleTeamCount = 0;
   Object.entries(TEAM_AGENTS).forEach(([team, agents]) => {
-    // Only include agents that are relevant (selected analysts + fixed teams)
     const relevant = team === 'Analyst Team'
       ? agents.filter(a => selectedAgents.has(a))
       : agents;
     if (relevant.length === 0) return;
 
+    visibleTeamCount++;
+    const color = TEAM_COLORS[team] || { hex: '#6366f1', rgb: '99,102,241' };
+
     const block = document.createElement('div');
     block.className = 'team-block';
+    block.dataset.team = team;
+    // Color accent
+    block.style.borderLeft = `4px solid ${color.hex}`;
+    block.style.background  = `rgba(${color.rgb}, 0.10)`;
+    block.style.paddingLeft  = '14px';
 
     const nameEl = document.createElement('div');
     nameEl.className = 'team-name';
+    nameEl.style.color = color.hex;
     nameEl.textContent = team;
     block.appendChild(nameEl);
 
@@ -488,14 +497,17 @@ function buildPipelineStrip(selectedAnalysts) {
       AppState.agentStatus[agent] = 'pending';
       const dot = document.createElement('div');
       dot.className = 'agent-dot';
-      dot.dataset.agent = agent;
+      dot.dataset.agent  = agent;
       dot.dataset.status = 'pending';
       dot.title = agent;
+      dot.style.setProperty('--team-color', color.hex);
       dotsEl.appendChild(dot);
     });
     block.appendChild(dotsEl);
     strip.appendChild(block);
   });
+
+  AppState.totalTeams = visibleTeamCount;
 }
 
 function updatePipelineStrip(agent, status) {
