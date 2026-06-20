@@ -578,8 +578,8 @@ function appendFeedRow(event) {
   row.appendChild(ts);
   row.appendChild(badge);
   row.appendChild(content);
-  feed.appendChild(row);
-  feed.scrollTop = feed.scrollHeight;
+  feed.insertBefore(row, feed.firstChild);
+  // No scroll needed — newest item is always at the top
 }
 
 // ── Task 5: SSE client ─────────────────────────────────────────────────────
