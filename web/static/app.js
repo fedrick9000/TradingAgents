@@ -273,6 +273,14 @@ function transitionToRunning(selectedAnalysts) {
   AppState.reports = {};
   AppState.debateData = { investment: {}, risk: {} };
   AppState.feedEvents = [];
+  AppState.completedTeams = new Set();   // reset
+  AppState.totalTeams = 0;              // reset (set by buildPipelineStrip below)
+  AppState.lastSignal = null;
+  AppState.lastDecisionText = null;
+
+  // Remove hero card from any previous run
+  const existingHero = document.getElementById('hero-card');
+  if (existingHero) existingHero.remove();
 
   document.getElementById('idle-view').classList.add('hidden');
   document.getElementById('running-view').classList.remove('hidden');
@@ -282,6 +290,7 @@ function transitionToRunning(selectedAnalysts) {
     `${ticker}  ·  ${date}  ·  ${provider}`;
 
   buildPipelineStrip(selectedAnalysts);
+  resetProgressIndicator();             // reset after buildPipelineStrip sets totalTeams
   resetStoryPanels(selectedAnalysts);
   applyTeamColors();    // NEW — colors card headers after DOM is built
   clearFeed();
@@ -326,6 +335,49 @@ function setConnectionStatus(connected) {
   if (!dot) return;
   dot.classList.toggle('connected',    connected);
   dot.classList.toggle('disconnected', !connected);
+}
+
+// ── progress indicator ─────────────────────────────────────────────────────
+function resetProgressIndicator() {
+  const fraction  = document.getElementById('progress-fraction');
+  const fill      = document.getElementById('progress-fill');
+  const agentName = document.getElementById('progress-agent-name');
+  if (fraction)  fraction.textContent  = `0 / ${AppState.totalTeams}`;
+  if (fill)      { fill.style.width = '0%'; fill.style.backgroundColor = 'var(--accent)'; }
+  if (agentName) agentName.textContent = '';
+}
+
+function updateProgressIndicator(agent, status) {
+  const team  = AGENT_TO_TEAM[agent];
+  if (!team) return;
+  const color = TEAM_COLORS[team] || { hex: 'var(--accent)', rgb: '99,102,241' };
+
+  const fraction  = document.getElementById('progress-fraction');
+  const fill      = document.getElementById('progress-fill');
+  const agentName = document.getElementById('progress-agent-name');
+
+  if (status === 'in_progress') {
+    if (agentName) agentName.textContent = `● ${team}`;
+    if (fill) fill.style.backgroundColor = color.hex;
+  }
+
+  if (status === 'completed') {
+    // Mark team complete if ALL its registered agents are done
+    const teamAgents = (TEAM_AGENTS[team] || []).filter(a => a in AppState.agentStatus);
+    if (teamAgents.length > 0 && teamAgents.every(a => AppState.agentStatus[a] === 'completed')) {
+      AppState.completedTeams.add(team);
+    }
+  }
+
+  const count = AppState.completedTeams.size;
+  const total = AppState.totalTeams || 5;
+  if (fraction) fraction.textContent = `${count} / ${total}`;
+  if (fill) fill.style.width = `${(count / total) * 100}%`;
+
+  if (count === total && total > 0) {
+    if (fill) fill.style.backgroundColor = '#10B981';
+    if (agentName) agentName.textContent = 'Complete ✓';
+  }
 }
 
 // ── elapsed timer ─────────────────────────────────────────────────────────
@@ -666,6 +718,7 @@ function handleEvent(event) {
 function onAgentStatus(event) {
   updatePipelineStrip(event.agent, event.status);
   appendSystemFeed(`${event.agent} → ${event.status}`);
+  updateProgressIndicator(event.agent, event.status);   // NEW
 }
 
 function onFeed(event) {
