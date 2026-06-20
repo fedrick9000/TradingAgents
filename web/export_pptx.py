@@ -430,7 +430,7 @@ def _slide_fundamentals(prs, data):
     _set_bg(slide)
     tick = data.get('ticker', '')
     dt   = data.get('date', '')
-    _add_chrome(slide, "Fundamentals", tick, dt, 3)
+    _add_chrome(slide, "Fundamentals", tick, dt, 6)
 
     text = data.get('reports', {}).get('fundamentals_report', '')
     rows = _extract_kv_table(text)
@@ -478,7 +478,7 @@ def _slide_news(prs, data):
     _set_bg(slide)
     tick = data.get('ticker', '')
     dt   = data.get('date', '')
-    _add_chrome(slide, "News Analysis", tick, dt, 4)
+    _add_chrome(slide, "News Analysis", tick, dt, 5)
 
     text    = data.get('reports', {}).get('news_report', '')
     bullets = _extract_bullets(text, max_bullets=6)
@@ -492,7 +492,7 @@ def _slide_sentiment(prs, data):
     _set_bg(slide)
     tick = data.get('ticker', '')
     dt   = data.get('date', '')
-    _add_chrome(slide, "Sentiment Analysis", tick, dt, 5)
+    _add_chrome(slide, "Sentiment Analysis", tick, dt, 4)
 
     text    = data.get('reports', {}).get('sentiment_report', '')
     bullets = _extract_bullets(text, max_bullets=5)
@@ -511,7 +511,7 @@ def _slide_technical(prs, data):
     _set_bg(slide)
     tick = data.get('ticker', '')
     dt   = data.get('date', '')
-    _add_chrome(slide, "Technical Analysis", tick, dt, 6)
+    _add_chrome(slide, "Technical Analysis", tick, dt, 3)
 
     text    = data.get('reports', {}).get('market_report', '')
     bullets = _extract_bullets(text, max_bullets=5)
@@ -704,15 +704,15 @@ def generate_pptx(data: dict) -> bytes:
     prs.slide_width  = _SLIDE_W
     prs.slide_height = _SLIDE_H
 
-    _slide_cover(prs, data)
-    _slide_exec_summary(prs, data)
-    _slide_fundamentals(prs, data)
-    _slide_news(prs, data)
-    _slide_sentiment(prs, data)
-    _slide_technical(prs, data)
-    _slide_research_debate(prs, data)
-    _slide_risk(prs, data)
-    _slide_final(prs, data)
+    _slide_cover(prs, data)           # 1
+    _slide_exec_summary(prs, data)    # 2
+    _slide_technical(prs, data)       # 3
+    _slide_sentiment(prs, data)       # 4
+    _slide_news(prs, data)            # 5
+    _slide_fundamentals(prs, data)    # 6
+    _slide_research_debate(prs, data) # 7
+    _slide_risk(prs, data)            # 8
+    _slide_final(prs, data)           # 9
 
     buf = io.BytesIO()
     prs.save(buf)
