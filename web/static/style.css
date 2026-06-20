@@ -405,6 +405,38 @@ body {
   cursor: pointer;
 }
 
+/* ticker chips */
+.ticker-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.ticker-chips-label {
+  font-size: 0.72rem;
+  color: var(--text-muted, #6b7280);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-right: 0.1rem;
+}
+.ticker-chip {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, color 0.15s;
+}
+.ticker-chip:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .form-error {
   color: var(--bear);
   font-size: 0.82rem;

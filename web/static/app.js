@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireAuthForm();
   loadRecentAnalyses();
   wireTickerAutocomplete();
+  wireTickerChips();
 });
 
 // ── auth overlay ───────────────────────────────────────────────────────────
@@ -276,6 +277,16 @@ function wireTickerAutocomplete() {
   });
 }
 
+// ── ticker chips ──────────────────────────────────────────────────────────
+function wireTickerChips() {
+  document.querySelectorAll('.ticker-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById('ticker-input');
+      input.value = btn.dataset.ticker;
+      input.dispatchEvent(new Event('input'));
+    });
+  });
+}
 
 // ── form submission ───────────────────────────────────────────────────────
 function wireForm() {
