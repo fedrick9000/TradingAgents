@@ -383,11 +383,10 @@ body {
   padding-right: 20px;
 }
 
-/* advanced toggle */
 .advanced-wrapper { padding: 0 20px 16px; }
 
 .advanced-panel {
-  margin-top: 12px;
+  margin-top: 0;
   padding: 16px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
