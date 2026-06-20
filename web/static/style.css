@@ -385,18 +385,6 @@ body {
 
 /* advanced toggle */
 .advanced-wrapper { padding: 0 20px 16px; }
-.advanced-toggle {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 4px 0;
-  letter-spacing: 0.02em;
-  transition: color 0.15s;
-}
-.advanced-toggle:hover { color: var(--accent-dark); }
 
 .advanced-panel {
   margin-top: 12px;

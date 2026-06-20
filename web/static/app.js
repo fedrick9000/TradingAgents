@@ -66,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setDefaultDate();
   loadProviders();
   wireForm();
-  wireAdvancedToggle();
   wireHomeBtn();
   wireAuthForm();
   loadRecentAnalyses();
@@ -277,16 +276,6 @@ function wireTickerAutocomplete() {
   });
 }
 
-// ── advanced toggle ───────────────────────────────────────────────────────
-function wireAdvancedToggle() {
-  const btn   = document.getElementById('advanced-toggle');
-  const panel = document.getElementById('advanced-panel');
-  btn.addEventListener('click', () => {
-    const open = !panel.classList.contains('hidden');
-    panel.classList.toggle('hidden', open);
-    btn.textContent = open ? 'Advanced options ▾' : 'Advanced options ▴';
-  });
-}
 
 // ── form submission ───────────────────────────────────────────────────────
 function wireForm() {
